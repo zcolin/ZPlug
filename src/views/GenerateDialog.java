@@ -23,7 +23,6 @@ import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
@@ -49,21 +48,19 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
     private       int           mElementSize;
     // 判断OnClick是否全选
     private       int           mOnClickSize;
-    // 判断是否是ButterKnife
-    private final boolean       mIsButterKnife;
 
     // 标签JPanel
-    private JPanel       mPanelTitle      = new JPanel();
-    private JCheckBox    mTitleName       = new JCheckBox(Constant.dialogs.tableFieldViewWidget);
-    private JLabel       mTitleId         = new JLabel(Constant.dialogs.tableFieldViewId);
-    private JCheckBox    mTitleClick      = new JCheckBox(Constant.FieldOnClick, false);
+    private JPanel      mPanelTitle      = new JPanel();
+    private JCheckBox   mTitleName       = new JCheckBox(Constant.dialogs.tableFieldViewWidget);
+    private JLabel      mTitleId         = new JLabel(Constant.dialogs.tableFieldViewId);
+    private JCheckBox   mTitleClick      = new JCheckBox(Constant.FieldOnClick, false);
     // 命名JPanel
-    private JPanel       mPanelTitleField = new JPanel();
-    private ButtonGroup  mTitleFieldGroup = new ButtonGroup();
+    private JPanel      mPanelTitleField = new JPanel();
+    private ButtonGroup mTitleFieldGroup = new ButtonGroup();
     // aa_bb
     //    private JRadioButton mTitleFieldUnderline = new JRadioButton("aa_bb");
     // aaBb
-    private JRadioButton mTitleFieldHump  = new JRadioButton("aaBb");
+    //    private JRadioButton mTitleFieldHump  = new JRadioButton("aaBb");
     // mAaBb
     //    private JRadioButton mTitleFieldPrefix = new JRadioButton("mAaBb", true);
 
@@ -114,8 +111,6 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
         private PsiClass      mClass;
         // 判断是否全选
         private int           mElementSize;
-        // 判断是否是ButterKnife
-        private boolean       mIsButterKnife;
 
         public Builder(int mElementSize) {
             this.mElementSize = mElementSize;
@@ -151,11 +146,6 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
             return this;
         }
 
-        public Builder setIsButterKnife(boolean butterKnife) {
-            mIsButterKnife = butterKnife;
-            return this;
-        }
-
         public GenerateDialog build() {
             return new GenerateDialog(this);
         }
@@ -170,7 +160,6 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
         mPsiFile = builder.mPsiFile;
         mClass = builder.mClass;
         mElementSize = builder.mElementSize;
-        mIsButterKnife = builder.mIsButterKnife;
     }
 
     /**
@@ -214,7 +203,7 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
      */
     void setCheckAll() {
         for (Element element : mElements) {
-            if (element.isClickable() || mIsButterKnife) {
+            if (element.isClickable()) {
                 mOnClickSize++;
             }
         }
@@ -244,15 +233,15 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
         mTitleClick.setHorizontalAlignment(JLabel.LEFT);
         // 添加listener
         //        mTitleFieldUnderline.addItemListener(this);
-        mTitleFieldHump.addItemListener(this);
+        //        mTitleFieldHump.addItemListener(this);
         //        mTitleFieldPrefix.addItemListener(this);
         // 添加到group
         //        mTitleFieldGroup.add(mTitleFieldUnderline);
-        mTitleFieldGroup.add(mTitleFieldHump);
+        //        mTitleFieldGroup.add(mTitleFieldHump);
         //        mTitleFieldGroup.add(mTitleFieldPrefix);
         // 添加到JPanel
         //        mPanelTitleField.add(mTitleFieldPrefix);
-        mPanelTitleField.add(mTitleFieldHump);
+        //        mPanelTitleField.add(mTitleFieldHump);
         //        mPanelTitleField.add(mTitleFieldUnderline);
         // 添加到JPanel
         mPanelTitle.add(mTitleName);
@@ -400,11 +389,7 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
      */
     void setDialog() {
         // 设置标题
-        if (mIsButterKnife) {
-            setTitle(Constant.dialogs.titleButterKnife);
-        } else {
-            setTitle(Constant.dialogs.titleFindViewById);
-        }
+        setTitle(Constant.dialogs.titleFindViewById);
         // 设置布局管理
         setLayout(mLayout);
         // 不可拉伸
@@ -442,11 +427,9 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
      *
      * @param isLayoutInflater 是否是LayoutInflater.from(this).inflate(R.layout.activity_main, null);
      * @param text             自定义text
-     * @param isBind           是否是bind
      * @param viewHolder       是否是viewHolder
-     * @param isButterKnife    是否是ButterKnife
      */
-    private void setCreator(boolean isLayoutInflater, String text, boolean isBind, boolean viewHolder, boolean isButterKnife) {
+    private void setCreator(boolean isLayoutInflater, String text, boolean viewHolder) {
         // 使用Builder模式
         new GenerateCreator.Builder(Constant.creatorCommandName)
                 .setDialog(this)
@@ -460,8 +443,6 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
                 .setIsLayoutInflater(isLayoutInflater)
                 .setLayoutInflaterText(text)
                 .setLayoutInflaterType(type)
-                .setIsButterKnife(isButterKnife)
-                .setIsBind(isBind)
                 .setViewHolder(viewHolder)
                 .build()
                 .execute();
@@ -472,7 +453,7 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
         switch (e.getActionCommand()) {
             case Constant.dialogs.buttonConfirm:
                 cancelDialog();
-                setCreator(mLayoutInflater.isSelected(), mLayoutInflaterField.getText(), /*mBind.isSelected()*/false, mViewHolderCheck.isSelected(), mIsButterKnife);
+                setCreator(mLayoutInflater.isSelected(), mLayoutInflaterField.getText(), /*mBind.isSelected()*/ mViewHolderCheck.isSelected());
                 break;
             case Constant.dialogs.buttonCancel:
                 cancelDialog();

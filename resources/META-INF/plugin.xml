@@ -35,12 +35,6 @@
 
     <actions>
         <!-- Add your actions here -->
-        <!--<action id="GenerateButterKnifeAction" class="actions.ButterKnifeAction" text="ButterKnife"
-                        description="GenerateButterKnifeAction">
-                    <add-to-group group-id="CodeMenu" anchor="first"/>
-                    <add-to-group group-id="GenerateGroup" anchor="first"/>
-                    <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt shift E"/>
-                </action>-->
         <action id="GenerateFindViewByIdAction" class="actions.FindViewByIdAction" text="FindViewById"
                 description="GenerateFindViewByIdAction">
             <add-to-group group-id="CodeMenu" anchor="first"/>

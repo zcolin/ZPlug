@@ -18,7 +18,7 @@ public class Element {
     // 名字如TextView
     private String name;
     // 命名1 aa_bb_cc; 2 aaBbCc 3 mAaBbCc
-    private int fieldNameType = 3;
+    private int fieldNameType = 2;
     private String fieldName;
     private XmlTag xml;
     // 是否生成

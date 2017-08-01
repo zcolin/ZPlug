@@ -20,7 +20,6 @@ import java.util.List;
 
 import constant.Constant;
 import entitys.Element;
-import utils.CreateMethodCreator;
 import utils.Util;
 import views.FindViewByIdDialog;
 import views.GenerateDialog;
@@ -35,14 +34,15 @@ public class FindViewByIdAction extends AnAction {
         if (project == null) {
             return;
         }
+
         // 获取选中内容
         final Editor mEditor = e.getData(PlatformDataKeys.EDITOR);
         if (mEditor == null) {
             return;
         }
-
         String mSelectedText = mEditor.getSelectionModel()
                                       .getSelectedText();
+        //如果选中的内容为空，将当前光标所在位置选中
         if (StringUtils.isEmpty(mSelectedText)) {
             mEditor.getSelectionModel()
                    .selectWordAtCaret(true);
@@ -50,8 +50,7 @@ public class FindViewByIdAction extends AnAction {
                                    .getSelectedText();
         }
 
-
-        // 未选中布局内容，显示dialog
+        // 如果选中内容还是为空，显示dialog
         int popupTime = 5;
         if (StringUtils.isEmpty(mSelectedText)) {
             mSelectedText = Messages.showInputDialog(project,
@@ -81,28 +80,14 @@ public class FindViewByIdAction extends AnAction {
             Util.showPopupBalloon(mEditor, Constant.actions.selectedErrorNoId, popupTime);
             return;
         }
-        // 判断是否有onCreate/onCreateView方法
+
         PsiFile psiFile = PsiUtilBase.getPsiFileInEditor(mEditor, project);
         PsiClass psiClass = Util.getTargetClass(mEditor, psiFile);
         if (psiClass == null) {
             Util.showPopupBalloon(mEditor, Constant.actions.selectedErrorNoPoint, popupTime);
             return;
         }
-        // 判断是否有onCreate方法
-        if (Util.isExtendsActivityOrActivityCompat(project, psiClass)
-                && psiClass.findMethodsByName(Constant.psiMethodByOnCreate, false).length == 0) {
-            // 写onCreate方法
-            new CreateMethodCreator(mEditor, psiFile, psiClass, Constant.creatorCommandName,
-                    mSelectedText, Constant.classTypeByActivity, false).execute();
-            return;
-        }
-        // 判断是否有onCreateView方法
-        if (Util.isExtendsFragmentOrFragmentV4(project, psiClass)
-                && psiClass.findMethodsByName(Constant.psiMethodByOnCreateView, false).length == 0) {
-            new CreateMethodCreator(mEditor, psiFile, psiClass, Constant.creatorCommandName,
-                    mSelectedText, Constant.classTypeByFragment, false).execute();
-            return;
-        }
+
         // 有的话就创建变量和findViewById
         if (mDialog != null && mDialog.isShowing()) {
             mDialog.cancelDialog();
@@ -113,8 +98,7 @@ public class FindViewByIdAction extends AnAction {
                 .setPsiFile(psiFile)
                 .setClass(psiClass)
                 .setElements(elements)
-                .setSelectedText(mSelectedText)
-                .setIsButterKnife(false));
+                .setSelectedText(mSelectedText));
         mDialog.showDialog();
     }
 }

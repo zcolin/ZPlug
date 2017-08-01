@@ -46,7 +46,7 @@ import entitys.Element;
 public class Util {
     /**
      * 通过strings.xml获取的值
-      */
+     */
     private static String StringValue;
 
     /**
@@ -57,20 +57,21 @@ public class Util {
      * @param time   显示时间，单位秒
      */
     public static void showPopupBalloon(final Editor editor, final String result, final int time) {
-        ApplicationManager.getApplication().invokeLater(() -> {
-            JBPopupFactory factory = JBPopupFactory.getInstance();
-            factory.createHtmlTextBalloonBuilder(result, null, new JBColor(new Color(116, 214, 238), new Color(76, 112, 117)), null)
-                    .setFadeoutTime(time * 1000)
-                    .createBalloon()
-                    .show(factory.guessBestPopupLocation(editor), Balloon.Position.below);
-        });
+        ApplicationManager.getApplication()
+                          .invokeLater(() -> {
+                              JBPopupFactory factory = JBPopupFactory.getInstance();
+                              factory.createHtmlTextBalloonBuilder(result, null, new JBColor(new Color(116, 214, 238), new Color(76, 112, 117)), null)
+                                     .setFadeoutTime(time * 1000)
+                                     .createBalloon()
+                                     .show(factory.guessBestPopupLocation(editor), Balloon.Position.below);
+                          });
     }
 
     /**
      * 驼峰
      *
      * @param fieldName fieldName
-     * @param type type
+     * @param type      type
      * @return String
      */
     public static String getFieldName(String fieldName, int type) {
@@ -113,14 +114,15 @@ public class Util {
      * @return String
      */
     public static String firstToUpperCase(String key) {
-        return key.substring(0, 1).toUpperCase(Locale.CHINA) + key.substring(1);
+        return key.substring(0, 1)
+                  .toUpperCase(Locale.CHINA) + key.substring(1);
     }
 
     /**
      * 解析xml获取string的值
      *
      * @param psiFile psiFile
-     * @param text text
+     * @param text    text
      * @return String
      */
     private static String getTextFromStringsXml(PsiFile psiFile, String text) {
@@ -130,8 +132,10 @@ public class Util {
                 super.visitElement(element);
                 if (element instanceof XmlTag) {
                     XmlTag tag = (XmlTag) element;
-                    if (tag.getName().equals("string")
-                            && tag.getAttributeValue("name").equals(text)) {
+                    if (tag.getName()
+                           .equals("string")
+                            && tag.getAttributeValue("name")
+                                  .equals(text)) {
                         PsiElement[] children = tag.getChildren();
                         String value = "";
                         for (PsiElement child : children) {
@@ -154,7 +158,7 @@ public class Util {
     /**
      * 获取所有id
      *
-     * @param file file
+     * @param file     file
      * @param elements elements
      * @return List<Element>
      */
@@ -210,7 +214,8 @@ public class Util {
                     XmlAttribute clickableAttr = tag.getAttribute("android:clickable", null);
                     boolean clickable = false;
                     if (clickableAttr != null && !StringUtils.isEmpty(clickableAttr.getValue())) {
-                        clickable = clickableAttr.getValue().equals("true");
+                        clickable = clickableAttr.getValue()
+                                                 .equals("true");
                     }
                     if (!StringUtils.isEmpty(name) && name.equals("Button")) {
                         clickable = true;
@@ -254,11 +259,12 @@ public class Util {
      * 根据当前文件获取对应的class文件
      *
      * @param editor editor
-     * @param file file
+     * @param file   file
      * @return PsiClass
      */
     public static PsiClass getTargetClass(Editor editor, PsiFile file) {
-        int offset = editor.getCaretModel().getOffset();
+        int offset = editor.getCaretModel()
+                           .getOffset();
         PsiElement element = file.findElementAt(offset);
         if (element == null) {
             return null;
@@ -272,13 +278,15 @@ public class Util {
      * 判断mClass是不是继承activityClass或者activityCompatClass
      *
      * @param mProject mProject
-     * @param mClass mClass
+     * @param mClass   mClass
      * @return boolean
      */
     public static boolean isExtendsActivityOrActivityCompat(Project mProject, PsiClass mClass) {
         // 根据类名查找类
-        PsiClass activityClass = JavaPsiFacade.getInstance(mProject).findClass("android.app.Activity", new EverythingGlobalScope(mProject));
-        PsiClass activityCompatClass = JavaPsiFacade.getInstance(mProject).findClass("android.support.v7.app.AppCompatActivity", new EverythingGlobalScope(mProject));
+        PsiClass activityClass = JavaPsiFacade.getInstance(mProject)
+                                              .findClass("android.app.Activity", new EverythingGlobalScope(mProject));
+        PsiClass activityCompatClass = JavaPsiFacade.getInstance(mProject)
+                                                    .findClass("android.support.v7.app.AppCompatActivity", new EverythingGlobalScope(mProject));
         return (activityClass != null && mClass.isInheritor(activityClass, true))
                 || (activityCompatClass != null && mClass.isInheritor(activityCompatClass, true));
     }
@@ -287,35 +295,42 @@ public class Util {
      * 判断mClass是不是继承fragmentClass或者fragmentV4Class
      *
      * @param mProject mProject
-     * @param mClass mClass
+     * @param mClass   mClass
      * @return boolean
      */
     public static boolean isExtendsFragmentOrFragmentV4(Project mProject, PsiClass mClass) {
         // 根据类名查找类
-        PsiClass fragmentClass = JavaPsiFacade.getInstance(mProject).findClass("android.app.Fragment", new EverythingGlobalScope(mProject));
-        PsiClass fragmentV4Class = JavaPsiFacade.getInstance(mProject).findClass("android.support.v4.app.Fragment", new EverythingGlobalScope(mProject));
+        PsiClass fragmentClass = JavaPsiFacade.getInstance(mProject)
+                                              .findClass("android.app.Fragment", new EverythingGlobalScope(mProject));
+        PsiClass fragmentV4Class = JavaPsiFacade.getInstance(mProject)
+                                                .findClass("android.support.v4.app.Fragment", new EverythingGlobalScope(mProject));
         return (fragmentClass != null && mClass.isInheritor(fragmentClass, true))
                 || (fragmentV4Class != null && mClass.isInheritor(fragmentV4Class, true));
     }
 
     /**
      * 判断是否存在ButterKnife.bind(this)/ButterKnife.bind(this, view)
+     *
      * @param mClass mClass
      * @return boolean
      */
-    public static boolean isButterKnifeBindExist(PsiClass mClass){
+    public static boolean isButterKnifeBindExist(PsiClass mClass) {
         PsiMethod onCreateMethod = getPsiMethodByName(mClass, Constant.psiMethodByOnCreate);
         PsiMethod onCreateViewMethod = getPsiMethodByName(mClass, Constant.psiMethodByOnCreateView);
         return !(onCreateMethod != null && onCreateMethod.getBody() != null
-                && onCreateMethod.getBody().getText().contains(Constant.utils.fieldButterKnifeBind)
+                && onCreateMethod.getBody()
+                                 .getText()
+                                 .contains(Constant.utils.fieldButterKnifeBind)
                 || (onCreateViewMethod != null && onCreateViewMethod.getBody() != null
-                && onCreateViewMethod.getBody().getText().contains(Constant.utils.fieldButterKnifeBind)));
+                && onCreateViewMethod.getBody()
+                                     .getText()
+                                     .contains(Constant.utils.fieldButterKnifeBind)));
     }
 
     /**
      * 创建onCreate方法
      *
-     * @param mSelectedText mSelectedText
+     * @param mSelectedText  mSelectedText
      * @param mIsButterKnife mIsButterKnife
      * @return String
      */
@@ -356,7 +371,7 @@ public class Util {
     /**
      * 创建onCreateView方法
      *
-     * @param mSelectedText mSelectedText
+     * @param mSelectedText  mSelectedText
      * @param mIsButterKnife mIsButterKnife
      * @return String
      */
@@ -418,7 +433,8 @@ public class Util {
      */
     static boolean isImplementsOnClickListener(PsiJavaCodeReferenceElement[] referenceElements) {
         for (PsiJavaCodeReferenceElement referenceElement : referenceElements) {
-            if (referenceElement.getText().contains("OnClickListener")) {
+            if (referenceElement.getText()
+                                .contains("OnClickListener")) {
                 return true;
             }
         }
@@ -443,37 +459,20 @@ public class Util {
     }
 
     /**
-     * 获取onClick方法里面的每条数据
-     *
-     * @param mClass mClass
-     * @return PsiElement[]
-     */
-    public static PsiElement[] getOnClickStatement(PsiClass mClass) {
-        // 获取onClick方法
-        PsiMethod[] onClickMethods = mClass.findMethodsByName(Constant.FieldonClick, false);
-        PsiElement[] psiElements = null;
-        if (onClickMethods.length > 0 && onClickMethods[0].getBody() != null) {
-            PsiCodeBlock onClickMethodBody = onClickMethods[0].getBody();
-            psiElements = onClickMethodBody.getChildren();
-        }
-        return psiElements;
-    }
-
-    /**
-     * 获取包含@OnClick注解的方法
+     * 获取包含@ZClick注解的方法
      *
      * @param mClass mClass
      * @return PsiMethod
      */
-    public static PsiMethod getPsiMethodByButterKnifeOnClick(PsiClass mClass) {
+    public static PsiMethod getPsiMethodByZClick(PsiClass mClass) {
         for (PsiMethod psiMethod : mClass.getMethods()) {
             // 获取方法的注解
             PsiModifierList modifierList = psiMethod.getModifierList();
             PsiAnnotation[] annotations = modifierList.getAnnotations();
             for (PsiAnnotation annotation : annotations) {
                 String qualifiedName = annotation.getQualifiedName();
-                if (qualifiedName != null && qualifiedName.equals("butterknife.OnClick")) {
-                    // 包含@OnClick注解
+                if (qualifiedName != null && qualifiedName.equals("ZClick")) {
+                    // 包含@ZClick注解
                     return psiMethod;
                 }
             }
@@ -482,59 +481,26 @@ public class Util {
     }
 
     /**
-     * 根据方法名获取方法
-     *
-     * @param mClass mClass
-     * @param methodName methodName
-     * @return PsiMethod
-     */
-    static PsiMethod getPsiMethodByName(PsiClass mClass, String methodName) {
-        for (PsiMethod psiMethod : mClass.getMethods()) {
-            if (psiMethod.getName().equals(methodName)) {
-                return psiMethod;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * 获取View类型的变量名
-     *
-     * @param mClass mClass
-     * @return String
-     */
-    static String getPsiMethodParamsViewField(PsiClass mClass) {
-        PsiMethod butterKnifeOnClickMethod = getPsiMethodByButterKnifeOnClick(mClass);
-        if (butterKnifeOnClickMethod != null) {
-            // 获取方法的指定参数类型的变量名
-            PsiParameterList parameterList = butterKnifeOnClickMethod.getParameterList();
-            PsiParameter[] parameters = parameterList.getParameters();
-            for (PsiParameter parameter : parameters) {
-                if (parameter.getTypeElement() != null && parameter.getTypeElement().getText().equals("View")) {
-                    return parameter.getName();
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * 获取包含@OnClick注解里面的值
+     * 获取包含@ZClick注解里面的值
      *
      * @return List<String>
      */
-    public static List<String> getPsiMethodByButterKnifeOnClickValue(PsiClass mClass) {
+    public static List<String> getPsiMethodByZClickValue(PsiClass mClass) {
         List<String> onClickValue = new ArrayList<>();
-        PsiMethod butterKnifeOnClickMethod = Util.getPsiMethodByButterKnifeOnClick(mClass);
+        PsiMethod butterKnifeOnClickMethod = Util.getPsiMethodByZClick(mClass);
         if (butterKnifeOnClickMethod != null) {// 获取方法的注解
             PsiModifierList modifierList = butterKnifeOnClickMethod.getModifierList();
             PsiAnnotation[] annotations = modifierList.getAnnotations();
             for (PsiAnnotation annotation : annotations) {
-                if (annotation.getQualifiedName() != null && annotation.getQualifiedName().equals("butterknife.OnClick")) {
+                if (annotation.getQualifiedName() != null && annotation.getQualifiedName()
+                                                                       .equals("ZClick")) {
                     String text = annotation.getText()
-                            .replace("(", "").replace(")", "")
-                            .replace("{", "").replace("}", "")
-                            .replace(" ", "").replace("@OnClick", "");
+                                            .replace("(", "")
+                                            .replace(")", "")
+                                            .replace("{", "")
+                                            .replace("}", "")
+                                            .replace(" ", "")
+                                            .replace("@ZClick", "");
                     if (!StringUtils.isEmpty(text)) {
                         String[] split = text.split(",");
                         for (String value : split) {
@@ -550,20 +516,62 @@ public class Util {
         return onClickValue;
     }
 
+
+    /**
+     * 根据方法名获取方法
+     *
+     * @param mClass     mClass
+     * @param methodName methodName
+     * @return PsiMethod
+     */
+    static PsiMethod getPsiMethodByName(PsiClass mClass, String methodName) {
+        for (PsiMethod psiMethod : mClass.getMethods()) {
+            if (psiMethod.getName()
+                         .equals(methodName)) {
+                return psiMethod;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 获取View类型的变量名
+     *
+     * @param mClass mClass
+     * @return String
+     */
+    static String getPsiMethodParamsViewField(PsiClass mClass) {
+        PsiMethod butterKnifeOnClickMethod = getPsiMethodByZClick(mClass);
+        if (butterKnifeOnClickMethod != null) {
+            // 获取方法的指定参数类型的变量名
+            PsiParameterList parameterList = butterKnifeOnClickMethod.getParameterList();
+            PsiParameter[] parameters = parameterList.getParameters();
+            for (PsiParameter parameter : parameters) {
+                if (parameter.getTypeElement() != null && parameter.getTypeElement()
+                                                                   .getText()
+                                                                   .equals("View")) {
+                    return parameter.getName();
+                }
+            }
+        }
+        return null;
+    }
+
     /**
      * 添加注解到方法
      *
-     * @param mClass mClass
-     * @param mFactory mFactory
+     * @param mClass       mClass
+     * @param mFactory     mFactory
      * @param onClickValue onClickValue
      */
     static void createOnClickAnnotation(PsiClass mClass, PsiElementFactory mFactory, List<String> onClickValue) {
-        PsiMethod butterKnifeOnClickMethod = Util.getPsiMethodByButterKnifeOnClick(mClass);
+        PsiMethod butterKnifeOnClickMethod = Util.getPsiMethodByZClick(mClass);
         if (butterKnifeOnClickMethod != null) {// 获取方法的注解
             PsiModifierList modifierList = butterKnifeOnClickMethod.getModifierList();
             PsiAnnotation[] annotations = modifierList.getAnnotations();
             for (PsiAnnotation annotation : annotations) {
-                if (annotation.getQualifiedName() != null && annotation.getQualifiedName().equals("butterknife.OnClick")) {
+                if (annotation.getQualifiedName() != null && annotation.getQualifiedName()
+                                                                       .equals("butterknife.OnClick")) {
                     StringBuilder annotationText = new StringBuilder();
                     annotationText.append("@OnClick(");
                     if (onClickValue.size() == 1) {
@@ -595,7 +603,9 @@ public class Util {
      * @return List<String>
      */
     static List<String> getOnClickListById(List<Element> mOnClickList) {
-        return mOnClickList.stream().map(Element::getFullID).collect(Collectors.toList());
+        return mOnClickList.stream()
+                           .map(Element::getFullID)
+                           .collect(Collectors.toList());
     }
 
     /**
@@ -616,15 +626,18 @@ public class Util {
 
     /**
      * FindViewById，获取xml里面的text
-     * @param element Element
+     *
+     * @param element  Element
      * @param mProject Project
      * @return String
      */
-    static String createFieldText(Element element, Project mProject){
-        String text = element.getXml().getAttributeValue("android:text");
+    static String createFieldText(Element element, Project mProject) {
+        String text = element.getXml()
+                             .getAttributeValue("android:text");
         if (StringUtils.isEmpty(text)) {
             // 如果是text为空，则获取hint里面的内容
-            text = element.getXml().getAttributeValue("android:hint");
+            text = element.getXml()
+                          .getAttributeValue("android:hint");
         }
         // 如果是@string/app_name类似
         if (!StringUtils.isEmpty(text) && text.contains("@string/")) {
@@ -634,7 +647,9 @@ public class Util {
             if (psiFiles.length > 0) {
                 for (PsiFile psiFile : psiFiles) {
                     // 获取src\main\res\values下面的strings.xml文件
-                    if (psiFile.getParent() != null && psiFile.getParent().toString().contains("src\\main\\res\\values")) {
+                    if (psiFile.getParent() != null && psiFile.getParent()
+                                                              .toString()
+                                                              .contains("src\\main\\res\\values")) {
                         text = Util.getTextFromStringsXml(psiFile, text);
                     }
                 }
@@ -645,14 +660,15 @@ public class Util {
 
     /**
      * FindViewById，创建字段
-     * @param text 注释内容
-     * @param element Element
-     * @param mIsLayoutInflater 是否选中LayoutInflater
+     *
+     * @param text                注释内容
+     * @param element             Element
+     * @param mIsLayoutInflater   是否选中LayoutInflater
      * @param mLayoutInflaterText 选中的布局的变量名
      * @param mLayoutInflaterType mLayoutInflaterType
      * @return String
      */
-    static String createFieldByElement(String text, Element element, boolean mIsLayoutInflater, String mLayoutInflaterText, int mLayoutInflaterType){
+    static String createFieldByElement(String text, Element element, boolean mIsLayoutInflater, String mLayoutInflaterText, int mLayoutInflaterType) {
         StringBuilder fromText = new StringBuilder();
         if (!StringUtils.isEmpty(text)) {
             fromText.append("/** ");
@@ -663,23 +679,25 @@ public class Util {
         fromText.append(element.getName());
         fromText.append(" ");
         fromText.append(element.getFieldName());
-        if (mIsLayoutInflater) fromText.append(layoutInflaterType2Str(mLayoutInflaterText, mLayoutInflaterType));
+        if (mIsLayoutInflater)
+            fromText.append(layoutInflaterType2Str(mLayoutInflaterText, mLayoutInflaterType));
         fromText.append(";");
         return fromText.toString();
     }
 
     /**
      * FindViewById，创建findViewById代码到initView方法里面
-     * @param findPre Fragment的话要view.findViewById
-     * @param mIsLayoutInflater 是否选中LayoutInflater
+     *
+     * @param findPre             Fragment的话要view.findViewById
+     * @param mIsLayoutInflater   是否选中LayoutInflater
      * @param mLayoutInflaterText 选中的布局的变量名
-     * @param context context
-     * @param mSelectedText 选中的布局
-     * @param mElements Element的List
+     * @param context             context
+     * @param mSelectedText       选中的布局
+     * @param mElements           Element的List
      * @param mLayoutInflaterType type
      * @return String
      */
-    static String createFieldsByInitViewMethod(String findPre, boolean mIsLayoutInflater, String mLayoutInflaterText, String context, String mSelectedText, List<Element> mElements, int mLayoutInflaterType){
+    static String createFieldsByInitViewMethod(String findPre, boolean mIsLayoutInflater, String mLayoutInflaterText, String context, String mSelectedText, List<Element> mElements, int mLayoutInflaterType) {
         StringBuilder initView = new StringBuilder();
         if (StringUtils.isEmpty(findPre)) {
             initView.append("private void initView() {\n");
@@ -725,6 +743,7 @@ public class Util {
 
     /**
      * 根据layoutInflaterType生成不同内容
+     *
      * @param mLayoutInflaterText mLayoutInflaterText
      * @param mLayoutInflaterType mLayoutInflaterType
      * @return String
@@ -742,17 +761,17 @@ public class Util {
 
 
     /**
-     *
      * ButterKnife，创建findById代码到init方法里面
-     * @param mIsLayoutInflater mIsLayoutInflater
+     *
+     * @param mIsLayoutInflater   mIsLayoutInflater
      * @param mLayoutInflaterText mLayoutInflaterText
-     * @param context context
-     * @param mSelectedText mSelectedText
-     * @param mElements mElements
-     * @param viewMethodName viewMethodName
+     * @param context             context
+     * @param mSelectedText       mSelectedText
+     * @param mElements           mElements
+     * @param viewMethodName      viewMethodName
      * @return String
      */
-    static String createButterKnifeViewMethod(boolean mIsLayoutInflater, String mLayoutInflaterText, String context, String mSelectedText, List<Element> mElements, String viewMethodName, int mLayoutInflaterType){
+    static String createButterKnifeViewMethod(boolean mIsLayoutInflater, String mLayoutInflaterText, String context, String mSelectedText, List<Element> mElements, String viewMethodName, int mLayoutInflaterType) {
         StringBuilder initView = new StringBuilder();
         initView.append("// TODO:Copy method name to use\n");
         initView.append("private void ");
@@ -787,10 +806,11 @@ public class Util {
 
     /**
      * FindViewById，创建OnClick方法和switch
+     *
      * @param mOnClickList 可onclick的Element的集合
      * @return String
      */
-    static String createFindViewByIdOnClickMethodAndSwitch(List<Element> mOnClickList){
+    static String createFindViewByIdOnClickMethodAndSwitch(List<Element> mOnClickList) {
         StringBuilder onClick = new StringBuilder();
         onClick.append("@Override public void onClick(View v) {\n");
         onClick.append("switch (v.getId()) {\n");
@@ -809,11 +829,12 @@ public class Util {
 
     /**
      * ButterKnife，在OnClick方法里面创建switch
+     *
      * @param psiMethodParamsViewField View类型的变量名
-     * @param onClickValues 注解里面跟OnClickList的id集合
+     * @param onClickValues            注解里面跟OnClickList的id集合
      * @return String
      */
-    static String createSwitchByOnClickMethod(String psiMethodParamsViewField, List<String> onClickValues){
+    static String createSwitchByOnClickMethod(String psiMethodParamsViewField, List<String> onClickValues) {
         StringBuilder psiSwitch = new StringBuilder();
         psiSwitch.append("switch (");
         psiSwitch.append(psiMethodParamsViewField);
@@ -830,14 +851,16 @@ public class Util {
 
     /**
      * ButterKnife，创建OnClick方法和switch
+     *
      * @param mOnClickList 可onclick的Element的集合
      * @return String
      */
-    static String createButterKnifeOnClickMethodAndSwitch(List<Element> mOnClickList){
+    static String createZClickMethodAndSwitch(List<Element> mOnClickList) {
         StringBuilder onClick = new StringBuilder();
-        onClick.append("@butterknife.OnClick(");
+        onClick.append("@ZClick(");
         if (mOnClickList.size() == 1) {
-            onClick.append(mOnClickList.get(0).getFullID());
+            onClick.append(mOnClickList.get(0)
+                                       .getFullID());
         } else {
             onClick.append("{");
             for (int i = 0; i < mOnClickList.size(); i++) {
@@ -865,9 +888,10 @@ public class Util {
 
     /**
      * FindViewById，创建ViewHolder
-     * @param viewHolderName viewHolderName
+     *
+     * @param viewHolderName     viewHolderName
      * @param viewHolderRootView viewHolderRootView
-     * @param mElements mElements
+     * @param mElements          mElements
      * @return String
      */
     @NotNull
@@ -913,43 +937,4 @@ public class Util {
         viewHolderText.append(viewHolderConstructorText.toString());
         return viewHolderText.toString();
     }
-
-    /**
-     * ButterKnife，创建ViewHolder
-     * @param viewHolderName viewHolderName
-     * @param viewHolderRootView viewHolderRootView
-     * @param mElements mElements
-     * @return String
-     */
-    @NotNull
-    static String createButterKnifeViewHolder(String viewHolderName, String viewHolderRootView, List<Element> mElements) {
-        // ViewHolder
-        StringBuilder viewHolderText = new StringBuilder();
-        // ViewHolder的Constructor
-        StringBuilder viewHolderConstructorText = new StringBuilder();
-        // 添加field和findViewById
-        for (Element element : mElements) {
-            // 添加Field
-            viewHolderText.append("@BindView(");
-            viewHolderText.append(element.getFullID());
-            viewHolderText.append(")\n");
-            viewHolderText.append(element.getName());
-            viewHolderText.append(" ");
-            viewHolderText.append(element.getFieldName());
-            viewHolderText.append(";\n");
-        }
-        // Constructor
-        viewHolderConstructorText.append(viewHolderName);
-        viewHolderConstructorText.append("(android.view.View ");
-        viewHolderConstructorText.append(viewHolderRootView);
-        viewHolderConstructorText.append(") {\n");
-        viewHolderConstructorText.append("ButterKnife.bind(this, ");
-        viewHolderConstructorText.append(viewHolderRootView);
-        viewHolderConstructorText.append(");\n");
-        viewHolderConstructorText.append("}");
-        // 添加Constructor到ViewHolder
-        viewHolderText.append(viewHolderConstructorText.toString());
-        return viewHolderText.toString();
-    }
-
 }
