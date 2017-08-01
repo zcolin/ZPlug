@@ -53,10 +53,7 @@ public class FindViewByIdAction extends AnAction {
         // 如果选中内容还是为空，显示dialog
         int popupTime = 5;
         if (StringUtils.isEmpty(mSelectedText)) {
-            mSelectedText = Messages.showInputDialog(project,
-                    Constant.actions.selectedMessage,
-                    Constant.actions.selectedTitle,
-                    Messages.getInformationIcon());
+            mSelectedText = Messages.showInputDialog(project, Constant.actions.selectedMessage, Constant.actions.selectedTitle, Messages.getInformationIcon());
             if (StringUtils.isEmpty(mSelectedText)) {
                 Util.showPopupBalloon(mEditor, Constant.actions.selectedErrorNoName, popupTime);
                 return;
@@ -65,9 +62,7 @@ public class FindViewByIdAction extends AnAction {
         // 获取布局文件，通过FilenameIndex.getFilesByName获取
         // GlobalSearchScope.allScope(project)搜索整个项目
         PsiFile[] psiFiles = new PsiFile[0];
-        psiFiles = FilenameIndex.getFilesByName(project,
-                mSelectedText + Constant.selectedTextSUFFIX,
-                GlobalSearchScope.allScope(project));
+        psiFiles = FilenameIndex.getFilesByName(project, mSelectedText + Constant.selectedTextSUFFIX, GlobalSearchScope.allScope(project));
         if (psiFiles.length <= 0) {
             Util.showPopupBalloon(mEditor, Constant.actions.selectedErrorNoSelected, popupTime);
             return;
@@ -88,7 +83,6 @@ public class FindViewByIdAction extends AnAction {
             return;
         }
 
-        // 有的话就创建变量和findViewById
         if (mDialog != null && mDialog.isShowing()) {
             mDialog.cancelDialog();
         }

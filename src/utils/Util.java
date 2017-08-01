@@ -5,14 +5,11 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiCodeBlock;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.PsiParameter;
@@ -20,7 +17,6 @@ import com.intellij.psi.PsiParameterList;
 import com.intellij.psi.PsiStatement;
 import com.intellij.psi.SyntheticElement;
 import com.intellij.psi.XmlRecursiveElementVisitor;
-import com.intellij.psi.search.EverythingGlobalScope;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -275,170 +271,35 @@ public class Util {
     }
 
     /**
-     * 判断mClass是不是继承activityClass或者activityCompatClass
-     *
-     * @param mProject mProject
-     * @param mClass   mClass
-     * @return boolean
-     */
-    public static boolean isExtendsActivityOrActivityCompat(Project mProject, PsiClass mClass) {
-        // 根据类名查找类
-        PsiClass activityClass = JavaPsiFacade.getInstance(mProject)
-                                              .findClass("android.app.Activity", new EverythingGlobalScope(mProject));
-        PsiClass activityCompatClass = JavaPsiFacade.getInstance(mProject)
-                                                    .findClass("android.support.v7.app.AppCompatActivity", new EverythingGlobalScope(mProject));
-        return (activityClass != null && mClass.isInheritor(activityClass, true))
-                || (activityCompatClass != null && mClass.isInheritor(activityCompatClass, true));
-    }
-
-    /**
-     * 判断mClass是不是继承fragmentClass或者fragmentV4Class
-     *
-     * @param mProject mProject
-     * @param mClass   mClass
-     * @return boolean
-     */
-    public static boolean isExtendsFragmentOrFragmentV4(Project mProject, PsiClass mClass) {
-        // 根据类名查找类
-        PsiClass fragmentClass = JavaPsiFacade.getInstance(mProject)
-                                              .findClass("android.app.Fragment", new EverythingGlobalScope(mProject));
-        PsiClass fragmentV4Class = JavaPsiFacade.getInstance(mProject)
-                                                .findClass("android.support.v4.app.Fragment", new EverythingGlobalScope(mProject));
-        return (fragmentClass != null && mClass.isInheritor(fragmentClass, true))
-                || (fragmentV4Class != null && mClass.isInheritor(fragmentV4Class, true));
-    }
-
-    /**
-     * 判断是否存在ButterKnife.bind(this)/ButterKnife.bind(this, view)
-     *
-     * @param mClass mClass
-     * @return boolean
-     */
-    public static boolean isButterKnifeBindExist(PsiClass mClass) {
-        PsiMethod onCreateMethod = getPsiMethodByName(mClass, Constant.psiMethodByOnCreate);
-        PsiMethod onCreateViewMethod = getPsiMethodByName(mClass, Constant.psiMethodByOnCreateView);
-        return !(onCreateMethod != null && onCreateMethod.getBody() != null
-                && onCreateMethod.getBody()
-                                 .getText()
-                                 .contains(Constant.utils.fieldButterKnifeBind)
-                || (onCreateViewMethod != null && onCreateViewMethod.getBody() != null
-                && onCreateViewMethod.getBody()
-                                     .getText()
-                                     .contains(Constant.utils.fieldButterKnifeBind)));
-    }
-
-    /**
      * 创建onCreate方法
-     *
-     * @param mSelectedText  mSelectedText
-     * @param mIsButterKnife mIsButterKnife
-     * @return String
-     */
-    static String createOnCreateMethod(String mSelectedText, boolean mIsButterKnife) {
-        StringBuilder method = new StringBuilder();
-        String viewStr = "\tsetContentView(R.layout." + mSelectedText + ");\n";
-        method.append("@Override protected void onCreate(android.os.Bundle savedInstanceState) {\n");
-        method.append("super.onCreate(savedInstanceState);\n");
-        method.append("\t// TODO:OnCreate Method has been created, run ");
-        if (!mIsButterKnife) {
-            method.append("FindViewById");
-            method.append(" again to generate code\n");
-            method.append(viewStr);
-            method.append("\t\tinitView();\n");
-        } else {
-            method.append("ButterKnife");
-            method.append(" again to generate code\n");
-            method.append(viewStr);
-            method.append("\t\tButterKnife.bind(this);\n");
-        }
-        method.append("}");
-        return method.toString();
-    }
-
-    /**
-     * 创建onCreate方法(Fragment)
      *
      * @param mSelectedText mSelectedText
      * @return String
      */
-    static String createFragmentOnCreateMethod(String mSelectedText) {
-        return "@Override public void onCreate(@Nullable android.os.Bundle savedInstanceState) {\n" +
-                "super.onCreate(savedInstanceState);\n" +
-                "\tview = View.inflate(getActivity(), R.layout." + mSelectedText + ", null);\n" +
-                "}";
+    static String createOnCreateMethod(String mSelectedText) {
+        StringBuilder method = new StringBuilder();
+        String viewStr = "\tsetContentView(R.layout." + mSelectedText + ");\n";
+        method.append("@Override protected void onCreate(Bundle savedInstanceState) {\n");
+        method.append("super.onCreate(savedInstanceState);\n");
+        method.append(viewStr);
+        method.append("\t\tinitView();\n");
+        method.append("}");
+        return method.toString();
     }
+
 
     /**
      * 创建onCreateView方法
      *
-     * @param mSelectedText  mSelectedText
-     * @param mIsButterKnife mIsButterKnife
      * @return String
      */
-    static String createOnCreateViewMethod(String mSelectedText, boolean mIsButterKnife) {
+    static String createCreateViewMethod() {
         StringBuilder method = new StringBuilder();
-        method.append("@Nullable @Override public View onCreateView(android.view.LayoutInflater inflater, @Nullable android.view.ViewGroup container, @Nullable android.os.Bundle savedInstanceState) {\n");
-        method.append("\t// TODO:OnCreateView Method has been created, run ");
-        if (!mIsButterKnife) {
-            method.append("FindViewById");
-            method.append(" again to generate code\n");
-            method.append("\t\tinitView(view);\n");
-        } else {
-            method.append("ButterKnife");
-            method.append(" again to generate code\n");
-            method.append("\t\tunbinder = ButterKnife.bind(this, view);\n");
-        }
-        method.append("return view;");
+        method.append("@Override protected void createView(@Nullable Bundle savedInstanceState) {\n");
+        method.append("\t\tinitView();\n");
+        method.append("\t\tsuper.createView(savedInstanceState);\n");
         method.append("}\n");
         return method.toString();
-    }
-
-    /**
-     * 创建initView方法，Fragment
-     *
-     * @return String
-     */
-    static String createFragmentInitViewMethod() {
-        return "public void initView(View view) {\n" +
-                "}";
-    }
-
-    /**
-     * 创建initView方法
-     *
-     * @return String
-     */
-    static String createInitViewMethod() {
-        return "public void initView() {\n" +
-                "}";
-    }
-
-    /**
-     * 创建OnDestroyView方法，里面包含unbinder.unbind()
-     *
-     * @return String
-     */
-    static String createOnDestroyViewMethod() {
-        return "@Override public void onDestroyView() {\n" +
-                "\tsuper.onDestroyView();" +
-                "\tunbinder.unbind();" +
-                "}";
-    }
-
-    /**
-     * 判断是否实现了OnClickListener接口
-     *
-     * @param referenceElements referenceElements
-     * @return boolean
-     */
-    static boolean isImplementsOnClickListener(PsiJavaCodeReferenceElement[] referenceElements) {
-        for (PsiJavaCodeReferenceElement referenceElement : referenceElements) {
-            if (referenceElement.getText()
-                                .contains("OnClickListener")) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -471,7 +332,7 @@ public class Util {
             PsiAnnotation[] annotations = modifierList.getAnnotations();
             for (PsiAnnotation annotation : annotations) {
                 String qualifiedName = annotation.getQualifiedName();
-                if (qualifiedName != null && qualifiedName.equals("ZClick")) {
+                if (qualifiedName != null && qualifiedName.endsWith(".ZClick")) {
                     // 包含@ZClick注解
                     return psiMethod;
                 }
@@ -493,7 +354,7 @@ public class Util {
             PsiAnnotation[] annotations = modifierList.getAnnotations();
             for (PsiAnnotation annotation : annotations) {
                 if (annotation.getQualifiedName() != null && annotation.getQualifiedName()
-                                                                       .equals("ZClick")) {
+                                                                       .endsWith(".ZClick")) {
                     String text = annotation.getText()
                                             .replace("(", "")
                                             .replace(")", "")
@@ -555,45 +416,6 @@ public class Util {
             }
         }
         return null;
-    }
-
-    /**
-     * 添加注解到方法
-     *
-     * @param mClass       mClass
-     * @param mFactory     mFactory
-     * @param onClickValue onClickValue
-     */
-    static void createOnClickAnnotation(PsiClass mClass, PsiElementFactory mFactory, List<String> onClickValue) {
-        PsiMethod butterKnifeOnClickMethod = Util.getPsiMethodByZClick(mClass);
-        if (butterKnifeOnClickMethod != null) {// 获取方法的注解
-            PsiModifierList modifierList = butterKnifeOnClickMethod.getModifierList();
-            PsiAnnotation[] annotations = modifierList.getAnnotations();
-            for (PsiAnnotation annotation : annotations) {
-                if (annotation.getQualifiedName() != null && annotation.getQualifiedName()
-                                                                       .equals("butterknife.OnClick")) {
-                    StringBuilder annotationText = new StringBuilder();
-                    annotationText.append("@OnClick(");
-                    if (onClickValue.size() == 1) {
-                        annotationText.append(onClickValue.get(0));
-                    } else {
-                        annotationText.append("{");
-                        for (int j = 0; j < onClickValue.size(); j++) {
-                            String value = onClickValue.get(j);
-                            if (j != 0) {
-                                annotationText.append(", ");
-                            }
-                            annotationText.append(value);
-                        }
-                        annotationText.append("}");
-                    }
-                    annotationText.append(")");
-                    modifierList.addBefore(mFactory.createAnnotationFromText(annotationText.toString(), modifierList), annotation);
-                    annotation.delete();
-                    break;
-                }
-            }
-        }
     }
 
     /**
@@ -661,14 +483,11 @@ public class Util {
     /**
      * FindViewById，创建字段
      *
-     * @param text                注释内容
-     * @param element             Element
-     * @param mIsLayoutInflater   是否选中LayoutInflater
-     * @param mLayoutInflaterText 选中的布局的变量名
-     * @param mLayoutInflaterType mLayoutInflaterType
+     * @param text    注释内容
+     * @param element Element
      * @return String
      */
-    static String createFieldByElement(String text, Element element, boolean mIsLayoutInflater, String mLayoutInflaterText, int mLayoutInflaterType) {
+    static String createFieldByElement(String text, Element element) {
         StringBuilder fromText = new StringBuilder();
         if (!StringUtils.isEmpty(text)) {
             fromText.append("/** ");
@@ -679,8 +498,6 @@ public class Util {
         fromText.append(element.getName());
         fromText.append(" ");
         fromText.append(element.getFieldName());
-        if (mIsLayoutInflater)
-            fromText.append(layoutInflaterType2Str(mLayoutInflaterText, mLayoutInflaterType));
         fromText.append(";");
         return fromText.toString();
     }
@@ -688,114 +505,20 @@ public class Util {
     /**
      * FindViewById，创建findViewById代码到initView方法里面
      *
-     * @param findPre             Fragment的话要view.findViewById
-     * @param mIsLayoutInflater   是否选中LayoutInflater
-     * @param mLayoutInflaterText 选中的布局的变量名
-     * @param context             context
-     * @param mSelectedText       选中的布局
-     * @param mElements           Element的List
-     * @param mLayoutInflaterType type
+     * @param fileType  fileType   //0 Activity  1Framgnet 2Adapter
+     * @param mElements Element的List
      * @return String
      */
-    static String createFieldsByInitViewMethod(String findPre, boolean mIsLayoutInflater, String mLayoutInflaterText, String context, String mSelectedText, List<Element> mElements, int mLayoutInflaterType) {
+    static String createFieldsByInitViewMethod(int fileType, List<Element> mElements) {
         StringBuilder initView = new StringBuilder();
-        if (StringUtils.isEmpty(findPre)) {
-            initView.append("private void initView() {\n");
-        } else {
-            initView.append("private void initView(View ");
-            initView.append(findPre);
-            initView.append(") {\n");
-        }
-        if (mIsLayoutInflater) {
-            // 添加LayoutInflater.from(this).inflate(R.layout.activity_main, null);
-            String layoutInflater = mLayoutInflaterText
-                    + " = LayoutInflater.from(" + context + ").inflate(R.layout." + mSelectedText + ", null);"
-                    + "\n";
-            initView.append(layoutInflater);
-        }
+        initView.append("private void initView() {\n");
         for (Element element : mElements) {
             if (element.isEnable()) {
-                String pre = StringUtils.isEmpty(findPre) ? "" : findPre + ".";
-                String inflater = "";
-                if (mIsLayoutInflater) {
-                    inflater = layoutInflaterType2Str(mLayoutInflaterText, mLayoutInflaterType);
-                    pre = mLayoutInflaterText + ".";
-                }
                 initView.append(element.getFieldName());
-                initView.append(inflater);
-                initView.append(" = (");
-                initView.append(element.getName());
-                initView.append(")");
-                initView.append(pre);
-                initView.append("findViewById(");
-                initView.append(element.getFullID());
-                initView.append(");\n");
-                if (element.isClickable() && element.isClickEnable()) {
-                    initView.append(element.getFieldName());
-                    initView.append(inflater);
-                    initView.append(".setOnClickListener(this);\n");
+                initView.append(" = getView(");
+                if (fileType == 2) {
+                    initView.append("holder, ");
                 }
-            }
-        }
-        initView.append("}\n");
-        return initView.toString();
-    }
-
-    /**
-     * 根据layoutInflaterType生成不同内容
-     *
-     * @param mLayoutInflaterText mLayoutInflaterText
-     * @param mLayoutInflaterType mLayoutInflaterType
-     * @return String
-     */
-    static String layoutInflaterType2Str(String mLayoutInflaterText, int mLayoutInflaterType) {
-        switch (mLayoutInflaterType) {
-            case 1:
-                return "_" + mLayoutInflaterText;
-            case 2:
-                return Util.firstToUpperCase(mLayoutInflaterText);
-            default:
-                return mLayoutInflaterText.substring(1);
-        }
-    }
-
-
-    /**
-     * ButterKnife，创建findById代码到init方法里面
-     *
-     * @param mIsLayoutInflater   mIsLayoutInflater
-     * @param mLayoutInflaterText mLayoutInflaterText
-     * @param context             context
-     * @param mSelectedText       mSelectedText
-     * @param mElements           mElements
-     * @param viewMethodName      viewMethodName
-     * @return String
-     */
-    static String createButterKnifeViewMethod(boolean mIsLayoutInflater, String mLayoutInflaterText, String context, String mSelectedText, List<Element> mElements, String viewMethodName, int mLayoutInflaterType) {
-        StringBuilder initView = new StringBuilder();
-        initView.append("// TODO:Copy method name to use\n");
-        initView.append("private void ");
-        initView.append(viewMethodName);
-        initView.append("() {\n");
-        if (mIsLayoutInflater) {
-            // 添加LayoutInflater.from(this).inflate(R.layout.activity_main, null);
-            String layoutInflater = mLayoutInflaterText
-                    + " = LayoutInflater.from(" + context + ").inflate(R.layout." + mSelectedText + ", null);"
-                    + "\n";
-            initView.append(layoutInflater);
-        }
-        for (Element element : mElements) {
-            if (element.isEnable()) {
-                String inflater = "";
-                if (mIsLayoutInflater) {
-                    inflater = layoutInflaterType2Str(mLayoutInflaterText, mLayoutInflaterType);
-                }
-                initView.append(element.getFieldName());
-                initView.append(inflater);
-                initView.append(" = ");
-                initView.append("ButterKnife.findById(");
-                initView.append(mLayoutInflaterText);
-                initView.append(", ");
                 initView.append(element.getFullID());
                 initView.append(");\n");
             }
@@ -805,83 +528,19 @@ public class Util {
     }
 
     /**
-     * FindViewById，创建OnClick方法和switch
+     * ZClick方法
      *
-     * @param mOnClickList 可onclick的Element的集合
+     * @param mOnClick 可onclick的Element
      * @return String
      */
-    static String createFindViewByIdOnClickMethodAndSwitch(List<Element> mOnClickList) {
-        StringBuilder onClick = new StringBuilder();
-        onClick.append("@Override public void onClick(View v) {\n");
-        onClick.append("switch (v.getId()) {\n");
-        for (Element element : mOnClickList) {
-            if (element.isClickable()) {
-                onClick.append("\tcase ");
-                onClick.append(element.getFullID());
-                onClick.append(":\n");
-                onClick.append("\t\tbreak;\n");
-            }
-        }
-        onClick.append("}\n");
-        onClick.append("}\n");
-        return onClick.toString();
-    }
-
-    /**
-     * ButterKnife，在OnClick方法里面创建switch
-     *
-     * @param psiMethodParamsViewField View类型的变量名
-     * @param onClickValues            注解里面跟OnClickList的id集合
-     * @return String
-     */
-    static String createSwitchByOnClickMethod(String psiMethodParamsViewField, List<String> onClickValues) {
-        StringBuilder psiSwitch = new StringBuilder();
-        psiSwitch.append("switch (");
-        psiSwitch.append(psiMethodParamsViewField);
-        psiSwitch.append(".getId()) {\n");
-        for (String value : onClickValues) {
-            psiSwitch.append("\tcase ");
-            psiSwitch.append(value);
-            psiSwitch.append(":\n");
-            psiSwitch.append("\t\tbreak;\n");
-        }
-        psiSwitch.append("}");
-        return psiSwitch.toString();
-    }
-
-    /**
-     * ButterKnife，创建OnClick方法和switch
-     *
-     * @param mOnClickList 可onclick的Element的集合
-     * @return String
-     */
-    static String createZClickMethodAndSwitch(List<Element> mOnClickList) {
+    static String createZClickMethod(Element mOnClick) {
         StringBuilder onClick = new StringBuilder();
         onClick.append("@ZClick(");
-        if (mOnClickList.size() == 1) {
-            onClick.append(mOnClickList.get(0)
-                                       .getFullID());
-        } else {
-            onClick.append("{");
-            for (int i = 0; i < mOnClickList.size(); i++) {
-                Element element = mOnClickList.get(i);
-                if (i != 0) {
-                    onClick.append(", ");
-                }
-                onClick.append(element.getFullID());
-            }
-            onClick.append("}");
-        }
+        onClick.append(mOnClick.getFullID());
         onClick.append(")\n");
-        onClick.append("public void onClick(View v) {\n");
-        onClick.append("switch (v.getId()) {\n");
-        for (Element element : mOnClickList) {
-            onClick.append("\tcase ");
-            onClick.append(element.getFullID());
-            onClick.append(":\n");
-            onClick.append("\t\tbreak;\n");
-        }
-        onClick.append("}\n");
+        onClick.append("public void on");
+        onClick.append(mOnClick.getFirstUpperCaseFieldName());
+        onClick.append("Click(View v) {\n");
         onClick.append("}\n");
         return onClick.toString();
     }

@@ -23,6 +23,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
@@ -30,7 +31,6 @@ import constant.Constant;
 import entitys.Element;
 import entitys.IdBean;
 import utils.GenerateCreator;
-import utils.Util;
 
 /**
  * GenerateDialog
@@ -40,49 +40,34 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
     private final Editor        mEditor;
     private final String        mSelectedText;
     private final List<Element> mElements;
-    // 获取当前文件
-    private final PsiFile       mPsiFile;
-    // 获取class
-    private final PsiClass      mClass;
-    // 判断是否全选
-    private       int           mElementSize;
-    // 判断OnClick是否全选
-    private       int           mOnClickSize;
 
-    // 标签JPanel
-    private JPanel      mPanelTitle      = new JPanel();
-    private JCheckBox   mTitleName       = new JCheckBox(Constant.dialogs.tableFieldViewWidget);
-    private JLabel      mTitleId         = new JLabel(Constant.dialogs.tableFieldViewId);
-    private JCheckBox   mTitleClick      = new JCheckBox(Constant.FieldOnClick, false);
-    // 命名JPanel
-    private JPanel      mPanelTitleField = new JPanel();
+    private final PsiFile  mPsiFile;// 获取当前文件
+    private final PsiClass mClass;// 获取class
+    private       int      mElementSize;// 判断是否全选
+    private       int      mOnClickSize; // 判断OnClick是否全选
+
+    private JPanel    mPanelTitle = new JPanel();  // 标签JPanel
+    private JCheckBox mTitleName  = new JCheckBox(Constant.dialogs.tableFieldViewWidget);
+    private JLabel    mTitleId    = new JLabel(Constant.dialogs.tableFieldViewId);
+    private JCheckBox mTitleClick = new JCheckBox(Constant.FieldOnClick, false);
+
+    private JPanel      mPanelTitleField = new JPanel();// 命名JPanel
     private ButtonGroup mTitleFieldGroup = new ButtonGroup();
-    // aa_bb
-    //    private JRadioButton mTitleFieldUnderline = new JRadioButton("aa_bb");
-    // aaBb
-    //    private JRadioButton mTitleFieldHump  = new JRadioButton("aaBb");
-    // mAaBb
-    //    private JRadioButton mTitleFieldPrefix = new JRadioButton("mAaBb", true);
 
-    // 内容JPanel
-    private JPanel             mContentJPanel      = new JPanel();
+
+    private JPanel             mContentJPanel      = new JPanel();// 内容JPanel
     private GridBagLayout      mContentLayout      = new GridBagLayout();
     private GridBagConstraints mContentConstraints = new GridBagConstraints();
-    // 内容JBScrollPane滚动
-    private JBScrollPane jScrollPane;
 
-    // 底部JPanel
-    // LayoutInflater JPanel
-    private JPanel    mPanelInflater  = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    // 是否选择LayoutInflater
-    private JCheckBox mLayoutInflater = new JCheckBox(Constant.dialogs.fieldLayoutInflater, false);
-    // 手动修改LayoutInflater字段名
-    private JTextField mLayoutInflaterField;
-    private int type = 2;
+    private JBScrollPane jScrollPane; // 内容JBScrollPane滚动
 
-    // viewHolder
-    private JPanel    mPanelViewHolder = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    private JCheckBox mViewHolderCheck = new JCheckBox(Constant.dialogs.viewHolderCheck, false);
+
+    private JPanel       mPanelInflater  = new JPanel(new FlowLayout(FlowLayout.LEFT)); // 底部JPanel
+    private JRadioButton mActivityflater = new JRadioButton("Activity", true);
+    private JRadioButton mFragemntflater = new JRadioButton("Fragment", false);
+    private JRadioButton mAdapterflater  = new JRadioButton("BaseAdapter", false);
+    private int          type            = 2;//命名方式 1 匈牙利 2 驼峰  3 m + 驼峰
+    private int          fileType        = 0;//0 Activity 1 Fragment  2 BaseAdapter
 
     // 是否bind，默认是true
     // private JCheckBox mBind = new JCheckBox(Constant.dialogs.fieldButterKnifeBind, true);
@@ -231,19 +216,6 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
         mTitleName.setBorder(new EmptyBorder(0, 5, 0, 0));
         mTitleId.setHorizontalAlignment(JLabel.LEFT);
         mTitleClick.setHorizontalAlignment(JLabel.LEFT);
-        // 添加listener
-        //        mTitleFieldUnderline.addItemListener(this);
-        //        mTitleFieldHump.addItemListener(this);
-        //        mTitleFieldPrefix.addItemListener(this);
-        // 添加到group
-        //        mTitleFieldGroup.add(mTitleFieldUnderline);
-        //        mTitleFieldGroup.add(mTitleFieldHump);
-        //        mTitleFieldGroup.add(mTitleFieldPrefix);
-        // 添加到JPanel
-        //        mPanelTitleField.add(mTitleFieldPrefix);
-        //        mPanelTitleField.add(mTitleFieldHump);
-        //        mPanelTitleField.add(mTitleFieldUnderline);
-        // 添加到JPanel
         mPanelTitle.add(mTitleName);
         mPanelTitle.add(mTitleId);
         mPanelTitle.add(mTitleClick);
@@ -257,28 +229,27 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
      * 添加底部
      */
     void initBottomPanel() {
-        String viewField = Util.getFieldName(mSelectedText, 3);
-        mLayoutInflaterField = new JTextField(viewField, viewField.length());
         // 添加监听
         mButtonConfirm.addActionListener(this);
         mButtonCancel.addActionListener(this);
-        mViewHolderCheck.addActionListener(this);
-        // viewHolder
-        mPanelViewHolder.add(mViewHolderCheck);
         // 右边
         mPanelButtonRight.add(mButtonConfirm);
         mPanelButtonRight.add(mButtonCancel);
-        // 添加到JPanel
-        //mPanelInflater.add(mCheckAll);
-        //        if (mIsButterKnife) {
-        //            mPanelInflater.add(mBind);
-        //        }
-        mPanelInflater.add(mLayoutInflater);
-        mPanelInflater.add(mLayoutInflaterField);
+        //添加listener
+        mActivityflater.addItemListener(this);
+        mFragemntflater.addItemListener(this);
+        mAdapterflater.addItemListener(this);
+        //添加到group
+        mTitleFieldGroup.add(mActivityflater);
+        mTitleFieldGroup.add(mFragemntflater);
+        mTitleFieldGroup.add(mAdapterflater);
+        //添加到JPanel
+        mPanelInflater.add(mActivityflater);
+        mPanelInflater.add(mFragemntflater);
+        mPanelInflater.add(mAdapterflater);
         // 添加到JFrame
         getContentPane().add(mPanelInflater, 2);
-        getContentPane().add(mPanelViewHolder, 3);
-        getContentPane().add(mPanelButtonRight, 4);
+        getContentPane().add(mPanelButtonRight, 3);
     }
 
     /**
@@ -359,13 +330,6 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
         mConstraints.weightx = 1;
         mConstraints.weighty = 0;
         mLayout.setConstraints(mPanelInflater, mConstraints);
-        mConstraints.fill = GridBagConstraints.HORIZONTAL;
-        mConstraints.gridwidth = 0;
-        mConstraints.gridx = 0;
-        mConstraints.gridy = 3;
-        mConstraints.weightx = 1;
-        mConstraints.weighty = 0;
-        mLayout.setConstraints(mPanelViewHolder, mConstraints);
         mConstraints.fill = GridBagConstraints.NONE;
         mConstraints.gridwidth = 0;
         mConstraints.gridx = 0;
@@ -424,12 +388,8 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
 
     /**
      * 生成
-     *
-     * @param isLayoutInflater 是否是LayoutInflater.from(this).inflate(R.layout.activity_main, null);
-     * @param text             自定义text
-     * @param viewHolder       是否是viewHolder
      */
-    private void setCreator(boolean isLayoutInflater, String text, boolean viewHolder) {
+    private void setCreator() {
         // 使用Builder模式
         new GenerateCreator.Builder(Constant.creatorCommandName)
                 .setDialog(this)
@@ -440,10 +400,7 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
                 .setElements(mElements)
                 .setFactory(JavaPsiFacade.getElementFactory(mClass.getProject()))
                 .setSelectedText(mSelectedText)
-                .setIsLayoutInflater(isLayoutInflater)
-                .setLayoutInflaterText(text)
-                .setLayoutInflaterType(type)
-                .setViewHolder(viewHolder)
+                .setFileType(fileType)
                 .build()
                 .execute();
     }
@@ -453,7 +410,7 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
         switch (e.getActionCommand()) {
             case Constant.dialogs.buttonConfirm:
                 cancelDialog();
-                setCreator(mLayoutInflater.isSelected(), mLayoutInflaterField.getText(), /*mBind.isSelected()*/ mViewHolderCheck.isSelected());
+                setCreator();
                 break;
             case Constant.dialogs.buttonCancel:
                 cancelDialog();
@@ -475,8 +432,7 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
                 refreshJScrollPane();
                 break;
             case Constant.dialogs.viewHolderCheck:
-                mLayoutInflater.setEnabled(!mViewHolderCheck.isSelected());
-                mLayoutInflaterField.setEnabled(!mViewHolderCheck.isSelected());
+                //mActivityflater.setEnabled(!mViewHolderCheck.isSelected());
                 //mBind.setEnabled(!mViewHolderCheck.isSelected());
                 break;
         }
@@ -484,7 +440,8 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
 
     @Override
     public void itemStateChanged(ItemEvent e) {
-        //        type = e.getSource() == mTitleFieldPrefix ? 3 : e.getSource() == mTitleFieldHump ? 2 : 1;
+        //type = e.getSource() == mTitleFieldPrefix ? 3 : e.getSource() == mTitleFieldHump ? 2 : 1;
+        fileType = e.getSource() == mAdapterflater ? 2 : e.getSource() == mFragemntflater ? 1 : 0;
         for (Element element : mElements) {
             if (element.isEnable()) {
                 // 设置类型
@@ -493,7 +450,6 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
                 element.setFieldName("");
             }
         }
-        mLayoutInflaterField.setText(Util.getFieldName(mSelectedText, type));
         refreshJScrollPane();
     }
 }

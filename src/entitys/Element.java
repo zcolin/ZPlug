@@ -22,17 +22,17 @@ public class Element {
     private String fieldName;
     private XmlTag xml;
     // 是否生成
-    private boolean isEnable = true;
+    private boolean isEnable    = true;
     // 是否有clickable
     private boolean clickEnable = false;
     // 是否Clickable
-    private boolean clickable = false;
+    private boolean clickable   = false;
 
     /**
      * 构造函数
      *
-     * @param name View的名字
-     * @param id   android:id属性
+     * @param name      View的名字
+     * @param id        android:id属性
      * @param clickable clickable
      * @throws IllegalArgumentException When the arguments are invalid
      */
@@ -120,8 +120,6 @@ public class Element {
 
     /**
      * 获取id，R.id.id
-     *
-     * @return
      */
     public String getFullID() {
         String rPrefix = "R.id.";
@@ -130,8 +128,6 @@ public class Element {
 
     /**
      * 获取变量名
-     *
-     * @return
      */
     public String getFieldName() {
         if (StringUtils.isEmpty(this.fieldName)) {
@@ -166,7 +162,24 @@ public class Element {
         return this.fieldName;
     }
 
+    /**
+     * 获取变量名
+     */
+    public String getFirstUpperCaseFieldName() {
+        if (StringUtils.isEmpty(this.fieldName)) {
+            String fieldName = id;
+            String[] names = id.split("_");
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < names.length; i++) {
+                sb.append(Util.firstToUpperCase(names[i]));
+            }
+            fieldName = sb.toString();
+            this.fieldName = fieldName;
+        }
+        return this.fieldName;
+    }
+
     public void setFieldName(String fieldName) {
-       this.fieldName = fieldName;
+        this.fieldName = fieldName;
     }
 }
