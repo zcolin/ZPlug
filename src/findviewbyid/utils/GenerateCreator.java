@@ -1,10 +1,9 @@
-package utils;
+package findviewbyid.utils;
 
 import com.intellij.codeInsight.actions.ReformatCodeProcessor;
 import com.intellij.openapi.command.WriteCommandAction.Simple;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiCodeBlock;
 import com.intellij.psi.PsiElementFactory;
@@ -12,7 +11,6 @@ import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiMethodCallExpression;
-import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.PsiStatement;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
@@ -21,9 +19,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import constant.Constant;
-import entitys.Element;
-import views.GenerateDialog;
+import findviewbyid.constant.Constant;
+import findviewbyid.entitys.Element;
+import findviewbyid.views.GenerateDialog;
 
 /**
  * 生成代码
@@ -39,7 +37,6 @@ public class GenerateCreator extends Simple {
     private final List<Element>     mElements;
     private final PsiElementFactory mFactory;
     private final String            mSelectedText;
-    private final int               mFileType;
 
     /**
      * Builder模式
@@ -55,7 +52,6 @@ public class GenerateCreator extends Simple {
         private       List<Element>     mElements;
         private       PsiElementFactory mFactory;
         private       String            mSelectedText;
-        private       int               mFileType;
 
         public Builder(String mCommand) {
             this.mCommand = mCommand;
@@ -101,11 +97,6 @@ public class GenerateCreator extends Simple {
             return this;
         }
 
-        public Builder setFileType(int mFileType) {
-            this.mFileType = mFileType;
-            return this;
-        }
-
         public GenerateCreator build() {
             return new GenerateCreator(this);
         }
@@ -121,7 +112,6 @@ public class GenerateCreator extends Simple {
         mElements = builder.mElements;
         mFactory = builder.mFactory;
         mSelectedText = builder.mSelectedText;
-        mFileType = builder.mFileType;
         // 添加有onclick的list
         mOnClickList.addAll(mElements.stream()
                                      .filter(element -> element.isEnable() && element.isClickable())
@@ -131,152 +121,182 @@ public class GenerateCreator extends Simple {
     @Override
     protected void run() throws Throwable {
         try {
-            generateFindViewById();
+            generateCode();
         } catch (Exception e) {
             // 异常打印
             mDialog.cancelDialog();
             Util.showPopupBalloon(mEditor, e.getMessage(), 10);
             return;
         }
-        // 重写class
+
         JavaCodeStyleManager styleManager = JavaCodeStyleManager.getInstance(mProject);
         styleManager.optimizeImports(mFile);
         styleManager.shortenClassReferences(mClass);
         new ReformatCodeProcessor(mProject, mClass.getContainingFile(), null, false).runWithoutProgress();
-        //        Util.showPopupBalloon(mEditor, Constant.actions.selectedSuccess, 5);
+        Util.showPopupBalloon(mEditor, Constant.actions.selectedSuccess, 5);
     }
 
-    /**
-     * 设置变量的值FindViewById，Activity和Fragment
-     */
-    private void generateFindViewById() {
-        if (mFileType == 0) {
-            generateFindViewByIdFields();
-            // 判断是否有onCreate方法
-            if (mClass.findMethodsByName(Constant.psiMethodByOnCreate, false).length == 0) {
-                mClass.add(mFactory.createMethodFromText(Util.createOnCreateMethod(mSelectedText), mClass));
-            } else {
-                PsiStatement setContentViewStatement = null; // 获取setContentView
-                boolean hasInitViewStatement = false;// onCreate是否存在initView方法
-                PsiMethod onCreate = mClass.findMethodsByName(Constant.psiMethodByOnCreate, false)[0];
-                if (onCreate.getBody() != null) {
-                    for (PsiStatement psiStatement : onCreate.getBody()
-                                                             .getStatements()) {
-                        // 查找setContentView
-                        if (psiStatement.getFirstChild() instanceof PsiMethodCallExpression) {
-                            PsiReferenceExpression methodExpression = ((PsiMethodCallExpression) psiStatement.getFirstChild()).getMethodExpression();
-                            if (methodExpression.getText()
-                                                .equals(Constant.utils.creatorSetContentViewMethod)) {
-                                setContentViewStatement = psiStatement;
-                            } else if (methodExpression.getText()
-                                                       .contains(Constant.utils.creatorInitViewName + "()")) {
-                                hasInitViewStatement = true;
-                            }
-                        }
-                    }
-                    if (setContentViewStatement == null) {
-                        onCreate.getBody()
-                                .add(mFactory.createStatementFromText("setContentView(R.layout." + mSelectedText + ");", mClass));
-                    }
-
-                    if (!hasInitViewStatement) {
-                        // 将initView()写到setContentView()后面
-                        if (setContentViewStatement != null) {
-                            onCreate.getBody()
-                                    .addAfter(mFactory.createStatementFromText("initView();", mClass), setContentViewStatement);
-                        } else {
-                            onCreate.getBody()
-                                    .add(mFactory.createStatementFromText("initView();", mClass));
-                        }
-                    }
-                }
-            }
+    private void generateCode() {
+        int fileType = Util.getFileType(mProject, mClass);
+        if (fileType == 0) {
+            generateFields();
+            generateActivityOnCreateCode();
             generateFindViewByIdLayoutCode();
-        } else if (mFileType == 1) {
-            generateFindViewByIdFields();
-            // 判断是否有createView方法
-            if (mClass.findMethodsByName(Constant.psiMethodByOnCreateView, false).length == 0) {
-                mClass.add(mFactory.createMethodFromText(Util.createCreateViewMethod(), mClass));
-            } else {
-                PsiStatement lastStatement = null;
-                boolean hasInitViewStatement = false; // createView是否存在initView方法
-                PsiMethod onCreate = mClass.findMethodsByName(Constant.psiMethodByOnCreateView, false)[0];
-                if (onCreate.getBody() != null) {
-                    for (PsiStatement psiStatement : onCreate.getBody()
-                                                             .getStatements()) {
-                        if (psiStatement.getText()
-                                        .contains("super.createView")) {
-                            // 获取view的值
-                            lastStatement = psiStatement;
-                        } else if (psiStatement.getText()
-                                               .contains(Constant.utils.creatorInitViewName + "()")) {
+            if (mOnClickList.size() != 0) {
+                generateZClickCode();
+            }
+        } else if (fileType == 1) {
+            generateFields();
+            generateFragmentCreateViewCode();
+            generateFindViewByIdLayoutCode();
+            if (mOnClickList.size() != 0) {
+                generateZClickCode();
+            }
+        } else if (fileType == 2) {
+            generateAdapterCode();
+        } else {
+            generateFields();
+            generateFindViewByIdLayoutCode();
+        }
+    }
+
+    private void generateActivityOnCreateCode() {
+        if (mClass.findMethodsByName(Constant.psiMethodByOnCreate, false).length == 0) {
+            mClass.add(mFactory.createMethodFromText(Util.createOnCreateMethod(mSelectedText), mClass));
+        } else {
+            PsiStatement setContentViewStatement = null; // 获取setContentView
+            boolean hasInitViewStatement = false;// onCreate是否存在initView方法
+            PsiMethod onCreate = mClass.findMethodsByName(Constant.psiMethodByOnCreate, false)[0];
+            if (onCreate.getBody() != null) {
+                for (PsiStatement psiStatement : onCreate.getBody()
+                                                         .getStatements()) {
+                    if (psiStatement.getFirstChild() instanceof PsiMethodCallExpression) {
+                        PsiReferenceExpression methodExpression = ((PsiMethodCallExpression) psiStatement.getFirstChild()).getMethodExpression();
+                        if (methodExpression.getText()
+                                            .equals(Constant.utils.creatorSetContentViewMethod)) {
+                            setContentViewStatement = psiStatement;
+                        } else if (methodExpression.getText()
+                                                   .equals(Constant.utils.creatorInitViewName)) {
                             hasInitViewStatement = true;
                         }
                     }
+                }
+                if (setContentViewStatement == null) {
+                    onCreate.getBody()
+                            .add(mFactory.createStatementFromText("setContentView(R.layout." + mSelectedText + ");", mClass));
+                }
 
-                    if (!hasInitViewStatement && lastStatement != null) {
+                if (!hasInitViewStatement) {
+                    // 将initView()写到setContentView()后面
+                    if (setContentViewStatement != null) {
                         onCreate.getBody()
-                                .addBefore(mFactory.createStatementFromText("initView();", mClass), lastStatement);
+                                .addAfter(mFactory.createStatementFromText("initView();", mClass), setContentViewStatement);
+                    } else {
+                        onCreate.getBody()
+                                .add(mFactory.createStatementFromText("initView();", mClass));
                     }
                 }
             }
-            generateFindViewByIdLayoutCode();
+        }
+    }
+
+    private void generateFragmentCreateViewCode() {
+        // 判断是否有createView方法
+        if (mClass.findMethodsByName(Constant.psiMethodByOnCreateView, false).length == 0) {
+            mClass.add(mFactory.createMethodFromText(Util.createCreateViewMethod(), mClass));
         } else {
-            StringBuilder builder = new StringBuilder();
-            for (Element element : mElements) {
-                if (element.isEnable()) {
-                    builder.append(element.getFieldName());
-                    builder.append(" = getView(");
-                    builder.append("holder, ");
-                    builder.append(element.getFullID());
-                    builder.append(");\n");
+            PsiStatement lastStatement = null;
+            boolean hasInitViewStatement = false; // createView是否存在initView方法
+            PsiMethod onCreate = mClass.findMethodsByName(Constant.psiMethodByOnCreateView, false)[0];
+            if (onCreate.getBody() != null) {
+                for (PsiStatement psiStatement : onCreate.getBody()
+                                                         .getStatements()) {
+                    if (psiStatement.getFirstChild() instanceof PsiMethodCallExpression) {
+                        PsiReferenceExpression methodExpression = ((PsiMethodCallExpression) psiStatement.getFirstChild()).getMethodExpression();
+                        if (methodExpression.getText()
+                                            .equals(Constant.utils.createViewMethod)) {
+                            lastStatement = psiStatement;
+                        } else if (methodExpression.getText()
+                                                   .equals(Constant.utils.creatorInitViewName)) {
+                            hasInitViewStatement = true;
+                        }
+                    }
                 }
-            }
 
-
-            if (mClass.findMethodsByName("setUpData", false).length == 0) {
-                StringBuilder methodBuilder = new StringBuilder();
-                methodBuilder.append("@Override public void setUpData(final CommonHolder holder, int position, int viewType, ClassCourseListReply.DataBean data) {\n");
-                methodBuilder.append(builder);
-                methodBuilder.append("}\n");
-                mClass.add(mFactory.createMethodFromText(builder.toString(), mClass));
-            } else {
-                PsiMethod setUpDataBody = mClass.findMethodsByName("setUpData", false)[0];
-                setUpDataBody.getBody()
-                             .add(mFactory.createStatementFromText(builder.toString(), mClass));
+                if (!hasInitViewStatement && lastStatement != null) {
+                    onCreate.getBody()
+                            .addBefore(mFactory.createStatementFromText("initView();", mClass), lastStatement);
+                }
             }
         }
     }
 
+    private void generateAdapterCode() {
+        // 判断是否已有setUpData方法
+        PsiMethod[] setUpDataMethods = mClass.findMethodsByName(Constant.utils.setUpDataMethod, false);
+        // 有initView方法
+        if (setUpDataMethods.length > 0 && setUpDataMethods[0].getBody() != null) {
+            PsiCodeBlock setUpDataMethodBody = setUpDataMethods[0].getBody();
+            // 获取initView方法里面的每条内容
+            PsiStatement[] statements = setUpDataMethodBody.getStatements();
+            for (Element element : mElements) {
+                if (element.isEnable()) {
+                    boolean isFdExist = false;
+                    String findViewById = new StringBuilder()
+                            .append(element.getName())
+                            .append(" ")
+                            .append(element.getFieldName())
+                            .append(" = getView(")
+                            .append("holder, ")
+                            .append(element.getFullID())
+                            .append(");\n")
+                            .toString();
+                    for (PsiStatement statement : statements) {
+                        if (statement.getText()
+                                     .equals(findViewById)) {
+                            isFdExist = true;
+                            break;
+                        } else {
+                            isFdExist = false;
+                        }
+                    }
+
+                    // 不存在就添加
+                    if (!isFdExist) {
+                        setUpDataMethodBody.add(mFactory.createStatementFromText(findViewById, setUpDataMethods[0]));
+                    }
+                }
+            }
+        } else {
+            mClass.add(mFactory.createMethodFromText(Util.createSetUpData(mElements), mClass));
+        }
+    }
+
     /**
-     * 创建变量
+     * 创建成员变量
      */
-    private void generateFindViewByIdFields() {
+    private void generateFields() {
+        ok:
         for (Element element : mElements) {
             // 已存在的变量就不创建
             PsiField[] fields = mClass.getFields();
-            boolean duplicateField = false;
             for (PsiField field : fields) {
                 String name = field.getName();
                 if (name != null && name.equals(element.getFieldName())) {
-                    duplicateField = true;
-                    break;
+                    continue ok;
                 }
             }
-            // 已存在跳出
-            if (duplicateField) {
-                continue;
-            }
+
             // 设置变量名，获取text里面的内容
             if (element.isEnable()) {
                 // 添加到class
-                mClass.add(mFactory.createFieldFromText(Util.createFieldByElement(Util.createFieldText(element, mProject), element), mClass));
+                mClass.add(mFactory.createFieldFromText(Util.createFieldByElement(Util.getFieldComments(element, mProject), element), mClass));
             }
         }
     }
 
     /**
-     * 写initView方法
+     * 写initView中的变量获取
      */
     private void generateFindViewByIdLayoutCode() {
         // 判断是否已有initView方法
@@ -288,14 +308,9 @@ public class GenerateCreator extends Simple {
             PsiStatement[] statements = initViewMethodBody.getStatements();
             for (Element element : mElements) {
                 if (element.isEnable()) {
-                    // 判断是否已存在findViewById
                     boolean isFdExist = false;
-
                     StringBuilder builder = new StringBuilder(element.getFieldName());
                     builder.append(" = getView(");
-                    if (mFileType == 2) {
-                        builder.append("holder, ");
-                    }
                     builder.append(element.getFullID());
                     builder.append(");");
                     String findViewById = builder.toString();
@@ -316,11 +331,7 @@ public class GenerateCreator extends Simple {
             }
         } else {
             mClass.add(mFactory.createMethodFromText(
-                    Util.createFieldsByInitViewMethod(mFileType, mElements), mClass));
-        }
-
-        if (mOnClickList.size() != 0) {
-            generateZClickCode();
+                    Util.createFieldsByInitViewMethod(mElements), mClass));
         }
     }
 
@@ -329,7 +340,7 @@ public class GenerateCreator extends Simple {
      * 写onClick方法
      */
     private void generateZClickCode() {
-        PsiMethod psiMethodByZClick = getPsiMethodByZClick(mClass);
+        PsiMethod psiMethodByZClick = Util.getPsiMethodByZClick(mClass);
         // 有@ZClick注解
         if (psiMethodByZClick != null && psiMethodByZClick.getBody() != null) {
             List<String> psiMethodZClickValue = Util.getPsiMethodByZClickValue(mClass);
@@ -360,21 +371,5 @@ public class GenerateCreator extends Simple {
                 }
             }
         }
-    }
-
-    public PsiMethod getPsiMethodByZClick(PsiClass mClass) {
-        for (PsiMethod psiMethod : mClass.getMethods()) {
-            // 获取方法的注解
-            PsiModifierList modifierList = psiMethod.getModifierList();
-            PsiAnnotation[] annotations = modifierList.getAnnotations();
-            for (PsiAnnotation annotation : annotations) {
-                String qualifiedName = annotation.getQualifiedName();
-                if (qualifiedName != null && qualifiedName.endsWith(".ZClick")) {
-                    // 包含@ZClick注解
-                    return psiMethod;
-                }
-            }
-        }
-        return null;
     }
 }

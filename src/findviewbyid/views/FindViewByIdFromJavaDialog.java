@@ -1,4 +1,4 @@
-package views;
+package findviewbyid.views;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
@@ -6,22 +6,24 @@ import com.intellij.psi.PsiStatement;
 
 import java.util.List;
 
-import entitys.Element;
-import utils.Util;
+import findviewbyid.entitys.Element;
+import findviewbyid.utils.Util;
 
 /**
- * FindViewByIdDialog
+ * FindViewByIdFromJavaDialog
  */
-public class FindViewByIdDialog extends GenerateDialog {
+public class FindViewByIdFromJavaDialog extends GenerateDialog {
 
     /**
-     * FindViewByIdDialog
+     * FindViewByIdFromJavaDialog
      *
      * @param builder Builder
      */
-    public FindViewByIdDialog(Builder builder) {
+    public FindViewByIdFromJavaDialog(Builder builder) {
         super(builder);
-        initExist();
+        if (mClass != null) {
+            initExist();
+        }
         initTopPanel();
         initContentPanel();
         setCheckAll();
@@ -69,7 +71,7 @@ public class FindViewByIdDialog extends GenerateDialog {
             if (statement.getText()
                          .contains(element.getFieldName())
                     && statement.getText()
-                                .contains("findViewById(" + element.getFullID() + ");")) {
+                                .contains("getView(" + element.getFullID() + ");")) {
                 return true;
             }
         }

@@ -1,4 +1,4 @@
-package constant;
+package findviewbyid.constant;
 
 public final class Constant {
     public static final String selectedTextSUFFIX      = ".xml";
@@ -15,10 +15,11 @@ public final class Constant {
         public static final String selectedErrorNoId       = "未找到任何Id";
         public static final String selectedErrorNoPoint    = "光标未在Class内";
         public static final String selectedSuccess         = "生成成功";
+        public static final String copySuccess             = "内容已复制到剪切板";
     }
 
     public static final class dialogs {
-        public static final String titleFindViewById    = "FindViewByIdDialog";
+        public static final String titleFindViewById    = "FindViewByIdFromJavaDialog";
         public static final String tableFieldViewWidget = "Widget";
         public static final String tableFieldViewId     = "ViewId";
         public static final String viewHolderCheck      = "Create ViewHolder";
@@ -29,6 +30,8 @@ public final class Constant {
     public static final class utils {
         public static final String creatorInitViewName         = "initView";
         public static final String creatorSetContentViewMethod = "setContentView";
+        public static final String createViewMethod            = "createView";
+        public static final String setUpDataMethod             = "setUpData";
     }
 
 }

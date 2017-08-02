@@ -1,10 +1,11 @@
-package utils;
+package findviewbyid.utils;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiCodeBlock;
@@ -17,6 +18,7 @@ import com.intellij.psi.PsiParameterList;
 import com.intellij.psi.PsiStatement;
 import com.intellij.psi.SyntheticElement;
 import com.intellij.psi.XmlRecursiveElementVisitor;
+import com.intellij.psi.search.EverythingGlobalScope;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -26,7 +28,6 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
 
 import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -36,8 +37,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import constant.Constant;
-import entitys.Element;
+import findviewbyid.constant.Constant;
+import findviewbyid.entitys.Element;
 
 public class Util {
     /**
@@ -276,12 +277,11 @@ public class Util {
      * @param mSelectedText mSelectedText
      * @return String
      */
-    static String createOnCreateMethod(String mSelectedText) {
+    public static String createOnCreateMethod(String mSelectedText) {
         StringBuilder method = new StringBuilder();
-        String viewStr = "\tsetContentView(R.layout." + mSelectedText + ");\n";
         method.append("@Override protected void onCreate(Bundle savedInstanceState) {\n");
         method.append("super.onCreate(savedInstanceState);\n");
-        method.append(viewStr);
+        method.append("\tsetContentView(R.layout." + mSelectedText + ");\n");
         method.append("\t\tinitView();\n");
         method.append("}");
         return method.toString();
@@ -293,13 +293,51 @@ public class Util {
      *
      * @return String
      */
-    static String createCreateViewMethod() {
+    public static String createCreateViewMethod() {
         StringBuilder method = new StringBuilder();
         method.append("@Override protected void createView(@Nullable Bundle savedInstanceState) {\n");
         method.append("\t\tinitView();\n");
         method.append("\t\tsuper.createView(savedInstanceState);\n");
         method.append("}\n");
         return method.toString();
+    }
+
+    public static String createGetRootLayoutId(String fileName) {
+        StringBuilder method = new StringBuilder();
+        method.append("@Override protected int getRootViewLayId() {\n");
+        method.append("\t\treturn R.layout.");
+        method.append(fileName);
+        method.append("\n}");
+        return method.toString();
+    }
+
+    public static String createGetItemLayoutId(String fileName) {
+        StringBuilder method = new StringBuilder();
+        method.append("@Override public int getItemLayoutId(int viewType) {\n");
+        method.append("\t\treturn R.layout.");
+        method.append(fileName);
+        method.append("\n}");
+        return method.toString();
+    }
+
+    public static String createSetUpData(List<Element> mElements) {
+        StringBuilder builder = new StringBuilder();
+        for (Element element : mElements) {
+            if (element.isEnable()) {
+                builder.append(element.getName());
+                builder.append(" ");
+                builder.append(element.getFieldName());
+                builder.append(" = getView(");
+                builder.append("holder, ");
+                builder.append(element.getFullID());
+                builder.append(");\n");
+            }
+        }
+        StringBuilder methodBuilder = new StringBuilder();
+        methodBuilder.append("@Override public void setUpData(final CommonHolder holder, int position, int viewType, ClassCourseListReply.DataBean data) {\n");
+        methodBuilder.append(builder);
+        methodBuilder.append("}\n");
+        return methodBuilder.toString();
     }
 
     /**
@@ -453,7 +491,7 @@ public class Util {
      * @param mProject Project
      * @return String
      */
-    static String createFieldText(Element element, Project mProject) {
+    public static String getFieldComments(Element element, Project mProject) {
         String text = element.getXml()
                              .getAttributeValue("android:text");
         if (StringUtils.isEmpty(text)) {
@@ -487,38 +525,34 @@ public class Util {
      * @param element Element
      * @return String
      */
-    static String createFieldByElement(String text, Element element) {
+    public static String createFieldByElement(String text, Element element) {
         StringBuilder fromText = new StringBuilder();
-        if (!StringUtils.isEmpty(text)) {
-            fromText.append("/** ");
-            fromText.append(text);
-            fromText.append(" */\n");
-        }
         fromText.append("private ");
         fromText.append(element.getName());
         fromText.append(" ");
         fromText.append(element.getFieldName());
         fromText.append(";");
+        if (!StringUtils.isEmpty(text)) {
+            fromText.append("//");
+            fromText.append(text);
+        }
+        fromText.append("\n");
         return fromText.toString();
     }
 
     /**
      * FindViewById，创建findViewById代码到initView方法里面
      *
-     * @param fileType  fileType   //0 Activity  1Framgnet 2Adapter
      * @param mElements Element的List
      * @return String
      */
-    static String createFieldsByInitViewMethod(int fileType, List<Element> mElements) {
+    public static String createFieldsByInitViewMethod(List<Element> mElements) {
         StringBuilder initView = new StringBuilder();
         initView.append("private void initView() {\n");
         for (Element element : mElements) {
             if (element.isEnable()) {
                 initView.append(element.getFieldName());
                 initView.append(" = getView(");
-                if (fileType == 2) {
-                    initView.append("holder, ");
-                }
                 initView.append(element.getFullID());
                 initView.append(");\n");
             }
@@ -546,54 +580,25 @@ public class Util {
     }
 
     /**
-     * FindViewById，创建ViewHolder
+     * 判断mClass是继承的Activity还是Fragment还是View
      *
-     * @param viewHolderName     viewHolderName
-     * @param viewHolderRootView viewHolderRootView
-     * @param mElements          mElements
-     * @return String
+     * @return 0 Activity  1Framgnet 2Adapter 3 其他
      */
-    @NotNull
-    static String createFindViewByIdViewHolder(String viewHolderName, String viewHolderRootView, List<Element> mElements) {
-        // ViewHolder
-        StringBuilder viewHolderText = new StringBuilder();
-        // ViewHolder的Constructor
-        StringBuilder viewHolderConstructorText = new StringBuilder();
-        // rootView
-        viewHolderText.append("android.view.View ");
-        viewHolderText.append(viewHolderRootView);
-        viewHolderText.append(";\n");
-        // Constructor
-        viewHolderConstructorText.append(viewHolderName);
-        viewHolderConstructorText.append("(android.view.View ");
-        viewHolderConstructorText.append(viewHolderRootView);
-        viewHolderConstructorText.append(") {\n");
-        viewHolderConstructorText.append("this.");
-        viewHolderConstructorText.append(viewHolderRootView);
-        viewHolderConstructorText.append(" = ");
-        viewHolderConstructorText.append(viewHolderRootView);
-        viewHolderConstructorText.append(";\n");
-        // 添加field和findViewById
-        for (Element element : mElements) {
-            // 添加Field
-            viewHolderText.append(element.getName());
-            viewHolderText.append(" ");
-            viewHolderText.append(element.getFieldName());
-            viewHolderText.append(";\n");
-            // 添加findViewById
-            viewHolderConstructorText.append("this.");
-            viewHolderConstructorText.append(element.getFieldName());
-            viewHolderConstructorText.append(" = (");
-            viewHolderConstructorText.append(element.getName());
-            viewHolderConstructorText.append(") ");
-            viewHolderConstructorText.append(viewHolderRootView);
-            viewHolderConstructorText.append(".findViewById(");
-            viewHolderConstructorText.append(element.getFullID());
-            viewHolderConstructorText.append(");\n");
+    public static int getFileType(Project mProject, PsiClass mClass) {
+        PsiClass activityClass = JavaPsiFacade.getInstance(mProject)
+                                              .findClass("android.support.v7.app.AppCompatActivity", new EverythingGlobalScope(mProject));
+        PsiClass fragmentClass = JavaPsiFacade.getInstance(mProject)
+                                              .findClass("android.support.v4.app.Fragment", new EverythingGlobalScope(mProject));
+        PsiClass adapterClass = JavaPsiFacade.getInstance(mProject)
+                                             .findClass("android.support.v7.widget.RecyclerView", new EverythingGlobalScope(mProject));
+
+        if (activityClass != null && mClass.isInheritor(activityClass, true)) {
+            return 0;
+        } else if (fragmentClass != null && mClass.isInheritor(fragmentClass, true)) {
+            return 1;
+        } else if (adapterClass != null && mClass.isInheritor(adapterClass, true)) {
+            return 2;
         }
-        viewHolderConstructorText.append("}");
-        // 添加Constructor到ViewHolder
-        viewHolderText.append(viewHolderConstructorText.toString());
-        return viewHolderText.toString();
+        return 3;
     }
 }

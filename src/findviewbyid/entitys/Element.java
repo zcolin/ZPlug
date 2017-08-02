@@ -1,4 +1,4 @@
-package entitys;
+package findviewbyid.entitys;
 
 import com.intellij.psi.xml.XmlTag;
 
@@ -7,7 +7,7 @@ import org.apache.commons.lang.StringUtils;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import utils.Util;
+import findviewbyid.utils.Util;
 
 public class Element {
 
@@ -166,17 +166,14 @@ public class Element {
      * 获取变量名
      */
     public String getFirstUpperCaseFieldName() {
-        if (StringUtils.isEmpty(this.fieldName)) {
-            String fieldName = id;
-            String[] names = id.split("_");
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < names.length; i++) {
-                sb.append(Util.firstToUpperCase(names[i]));
-            }
-            fieldName = sb.toString();
-            this.fieldName = fieldName;
+        String fieldName = id;
+        String[] names = id.split("_");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < names.length; i++) {
+            sb.append(Util.firstToUpperCase(names[i]));
         }
-        return this.fieldName;
+        fieldName = sb.toString();
+        return fieldName;
     }
 
     public void setFieldName(String fieldName) {

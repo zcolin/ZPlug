@@ -1,4 +1,4 @@
-package entitys;
+package findviewbyid.entitys;
 
 import java.awt.LayoutManager;
 import java.awt.event.FocusEvent;
@@ -14,10 +14,11 @@ import javax.swing.border.EmptyBorder;
  * Created by wangzai on 2016/11/24.
  */
 public class IdBean extends JPanel {
-    private JCheckBox mEnableCheckBox;
-    private JLabel mIdJLabel;
-    private JCheckBox mClickCheckBox;
+    private JCheckBox  mEnableCheckBox;
+    private JLabel     mIdJLabel;
+    private JCheckBox  mClickCheckBox;
     private JTextField mFieldJTextField;
+    private int        mFileType;
 
     /**
      * mEnableCheckBox接口
@@ -70,16 +71,18 @@ public class IdBean extends JPanel {
      * @param enable         是否生成
      * @param clickable      clickable
      * @param clickEnable    是否Enable
+     * @param fileType       类型 0Activity 1Fragment 2Adapter 3其他
      */
     public IdBean(LayoutManager layout, EmptyBorder emptyBorder,
                   JCheckBox jCheckBox, JLabel jLabelId, JCheckBox jCheckBoxClick, JTextField jTextField,
-                  boolean enable, boolean clickable, boolean clickEnable) {
+                  boolean enable, boolean clickable, boolean clickEnable, int fileType) {
         super(layout);
         initLayout(layout, emptyBorder);
         mEnableCheckBox = jCheckBox;
         mIdJLabel = jLabelId;
         mClickCheckBox = jCheckBoxClick;
         mFieldJTextField = jTextField;
+        mFileType = fileType;
         initComponent(enable, clickable, clickEnable);
         addComponent();
     }
@@ -97,19 +100,24 @@ public class IdBean extends JPanel {
     /**
      * 设置Component
      *
-     * @param enable enable
-     * @param clickable clickable
+     * @param enable      enable
+     * @param clickable   clickable
      * @param clickEnable clickEnable
      */
     private void initComponent(boolean enable, boolean clickable, boolean clickEnable) {
         mEnableCheckBox.setSelected(enable);
-        if (clickEnable) {
-            mClickCheckBox.setSelected(clickable);
-            mClickCheckBox.setEnabled(enable);
-        } else {
+        if (mFileType > 1) {
+            mClickCheckBox.setVisible(false);
             mClickCheckBox.setEnabled(false);
+        } else {
+            if (clickEnable) {
+                mClickCheckBox.setSelected(clickable);
+                mClickCheckBox.setEnabled(enable);
+            } else {
+                mClickCheckBox.setEnabled(false);
+            }
         }
-
+        
         mIdJLabel.setEnabled(enable);
         mFieldJTextField.setEnabled(enable);
 
@@ -122,7 +130,8 @@ public class IdBean extends JPanel {
             if (mEnableListener != null) {
                 mEnableListener.setEnable(mEnableCheckBox);
                 mIdJLabel.setEnabled(mEnableCheckBox.isSelected());
-                if (clickEnable) mClickCheckBox.setEnabled(mEnableCheckBox.isSelected());
+                if (clickEnable)
+                    mClickCheckBox.setEnabled(mEnableCheckBox.isSelected());
                 mFieldJTextField.setEnabled(mEnableCheckBox.isSelected());
             }
         });
@@ -153,7 +162,7 @@ public class IdBean extends JPanel {
     /**
      * 设置布局相关
      *
-     * @param layout layout
+     * @param layout      layout
      * @param emptyBorder emptyBorder
      */
     private void initLayout(LayoutManager layout, EmptyBorder emptyBorder) {

@@ -1,4 +1,4 @@
-package views;
+package findviewbyid.views;
 
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
@@ -17,44 +17,40 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.List;
 
-import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
-import constant.Constant;
-import entitys.Element;
-import entitys.IdBean;
-import utils.GenerateCreator;
+import findviewbyid.constant.Constant;
+import findviewbyid.entitys.Element;
+import findviewbyid.entitys.IdBean;
+import findviewbyid.utils.GenerateCreator;
+import findviewbyid.utils.Util;
 
 /**
  * GenerateDialog
  */
 public class GenerateDialog extends JFrame implements ActionListener, ItemListener {
-    private final Project       mProject;
-    private final Editor        mEditor;
-    private final String        mSelectedText;
-    private final List<Element> mElements;
+    protected final Project       mProject;
+    protected final Editor        mEditor;
+    protected final List<Element> mElements;
+    protected final PsiFile       mPsiFile;// 获取当前文件
 
-    private final PsiFile  mPsiFile;// 获取当前文件
-    private final PsiClass mClass;// 获取class
-    private       int      mElementSize;// 判断是否全选
-    private       int      mOnClickSize; // 判断OnClick是否全选
+    protected final PsiClass mClass;// 获取class
+    private final   String   mSelectedText;
+    private         int      mElementSize;// 判断是否全选
+    private         int      mOnClickSize; // 判断OnClick是否全选
+    private         int      fileType;
 
-    private JPanel    mPanelTitle = new JPanel();  // 标签JPanel
-    private JCheckBox mTitleName  = new JCheckBox(Constant.dialogs.tableFieldViewWidget);
-    private JLabel    mTitleId    = new JLabel(Constant.dialogs.tableFieldViewId);
-    private JCheckBox mTitleClick = new JCheckBox(Constant.FieldOnClick, false);
-
-    private JPanel      mPanelTitleField = new JPanel();// 命名JPanel
-    private ButtonGroup mTitleFieldGroup = new ButtonGroup();
-
-
+    private JPanel             mPanelTitle         = new JPanel();  // 标签JPanel
+    private JCheckBox          mTitleName          = new JCheckBox(Constant.dialogs.tableFieldViewWidget);
+    private JLabel             mTitleId            = new JLabel(Constant.dialogs.tableFieldViewId);
+    private JCheckBox          mTitleClick         = new JCheckBox(Constant.FieldOnClick, false);
+    private JPanel             mPanelTitleField    = new JPanel();// 命名JPanel
     private JPanel             mContentJPanel      = new JPanel();// 内容JPanel
     private GridBagLayout      mContentLayout      = new GridBagLayout();
     private GridBagConstraints mContentConstraints = new GridBagConstraints();
@@ -62,15 +58,8 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
     private JBScrollPane jScrollPane; // 内容JBScrollPane滚动
 
 
-    private JPanel       mPanelInflater  = new JPanel(new FlowLayout(FlowLayout.LEFT)); // 底部JPanel
-    private JRadioButton mActivityflater = new JRadioButton("Activity", true);
-    private JRadioButton mFragemntflater = new JRadioButton("Fragment", false);
-    private JRadioButton mAdapterflater  = new JRadioButton("BaseAdapter", false);
-    private int          type            = 2;//命名方式 1 匈牙利 2 驼峰  3 m + 驼峰
-    private int          fileType        = 0;//0 Activity 1 Fragment  2 BaseAdapter
-
-    // 是否bind，默认是true
-    // private JCheckBox mBind = new JCheckBox(Constant.dialogs.fieldButterKnifeBind, true);
+    private JPanel mPanelInflater = new JPanel(new FlowLayout(FlowLayout.LEFT)); // 底部JPanel
+    private int    type           = 2;//命名方式 1 匈牙利 2 驼峰  3 m + 驼峰
 
     // 确定、取消JPanel
     private JPanel  mPanelButtonRight = new JPanel();
@@ -145,6 +134,9 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
         mPsiFile = builder.mPsiFile;
         mClass = builder.mClass;
         mElementSize = builder.mElementSize;
+        if (mClass != null) {
+            fileType = Util.getFileType(mProject, mClass);
+        }
     }
 
     /**
@@ -219,6 +211,9 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
         mPanelTitle.add(mTitleName);
         mPanelTitle.add(mTitleId);
         mPanelTitle.add(mTitleClick);
+        if (fileType > 1) {//只有Acitivty和Fragment添加点击按钮
+            mTitleClick.setVisible(false);
+        }
         mPanelTitle.add(mPanelTitleField);
         mPanelTitle.setSize(900, 30);
         // 添加到JFrame
@@ -235,18 +230,6 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
         // 右边
         mPanelButtonRight.add(mButtonConfirm);
         mPanelButtonRight.add(mButtonCancel);
-        //添加listener
-        mActivityflater.addItemListener(this);
-        mFragemntflater.addItemListener(this);
-        mAdapterflater.addItemListener(this);
-        //添加到group
-        mTitleFieldGroup.add(mActivityflater);
-        mTitleFieldGroup.add(mFragemntflater);
-        mTitleFieldGroup.add(mAdapterflater);
-        //添加到JPanel
-        mPanelInflater.add(mActivityflater);
-        mPanelInflater.add(mFragemntflater);
-        mPanelInflater.add(mAdapterflater);
         // 添加到JFrame
         getContentPane().add(mPanelInflater, 2);
         getContentPane().add(mPanelButtonRight, 3);
@@ -268,7 +251,7 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
                     new JTextField(element.getFieldName()),
                     element.isEnable(),
                     element.isClickable(),
-                    element.isClickEnable());
+                    element.isClickEnable(), fileType);
             // 监听
             itemJPanel.setEnableActionListener(enableCheckBox -> {
                 element.setEnable(enableCheckBox.isSelected());
@@ -389,7 +372,7 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
     /**
      * 生成
      */
-    private void setCreator() {
+    protected void actionConfirm() {
         // 使用Builder模式
         new GenerateCreator.Builder(Constant.creatorCommandName)
                 .setDialog(this)
@@ -400,7 +383,6 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
                 .setElements(mElements)
                 .setFactory(JavaPsiFacade.getElementFactory(mClass.getProject()))
                 .setSelectedText(mSelectedText)
-                .setFileType(fileType)
                 .build()
                 .execute();
     }
@@ -410,7 +392,7 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
         switch (e.getActionCommand()) {
             case Constant.dialogs.buttonConfirm:
                 cancelDialog();
-                setCreator();
+                actionConfirm();
                 break;
             case Constant.dialogs.buttonCancel:
                 cancelDialog();
@@ -441,7 +423,6 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
     @Override
     public void itemStateChanged(ItemEvent e) {
         //type = e.getSource() == mTitleFieldPrefix ? 3 : e.getSource() == mTitleFieldHump ? 2 : 1;
-        fileType = e.getSource() == mAdapterflater ? 2 : e.getSource() == mFragemntflater ? 1 : 0;
         for (Element element : mElements) {
             if (element.isEnable()) {
                 // 设置类型
