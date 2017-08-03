@@ -11,7 +11,7 @@
     <actions>
         <group id="ZAction.Zplug" text="_Zplug" popup="true">
             <!--<add-to-group group-id="MainMenu" anchor="last"/>-->
-            <add-to-group group-id="EditorPopupMenu" anchor="first"/>
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
             <action id="ZFindViewAction" class="findviewbyid.actions.FindViewByIdFromJavaAction" text="ZFindView"
                     description="ZFindViewAction">
             </action>
