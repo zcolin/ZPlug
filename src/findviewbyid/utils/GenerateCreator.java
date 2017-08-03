@@ -268,7 +268,7 @@ public class GenerateCreator extends Simple {
                 }
             }
         } else {
-            mClass.add(mFactory.createMethodFromText(Util.createSetUpData(mElements), mClass));
+            mClass.add(mFactory.createMethodFromText(Util.createSetUpData(mElements, "T"), mClass));
         }
     }
 

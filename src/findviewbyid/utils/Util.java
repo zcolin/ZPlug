@@ -279,11 +279,11 @@ public class Util {
      */
     public static String createOnCreateMethod(String mSelectedText) {
         StringBuilder method = new StringBuilder();
-        method.append("@Override protected void onCreate(Bundle savedInstanceState) {\n");
-        method.append("super.onCreate(savedInstanceState);\n");
+        method.append("@Override\nprotected void onCreate(Bundle savedInstanceState) {\n");
+        method.append("\tsuper.onCreate(savedInstanceState);\n");
         method.append("\tsetContentView(R.layout." + mSelectedText + ");\n");
-        method.append("\t\tinitView();\n");
-        method.append("}");
+        method.append("\tinitView();\n");
+        method.append("}\n");
         return method.toString();
     }
 
@@ -295,35 +295,36 @@ public class Util {
      */
     public static String createCreateViewMethod() {
         StringBuilder method = new StringBuilder();
-        method.append("@Override protected void createView(@Nullable Bundle savedInstanceState) {\n");
-        method.append("\t\tinitView();\n");
-        method.append("\t\tsuper.createView(savedInstanceState);\n");
+        method.append("@Override\nprotected void createView(@Nullable Bundle savedInstanceState) {\n");
+        method.append("\tinitView();\n");
+        method.append("\tsuper.createView(savedInstanceState);\n");
         method.append("}\n");
         return method.toString();
     }
 
     public static String createGetRootLayoutId(String fileName) {
         StringBuilder method = new StringBuilder();
-        method.append("@Override protected int getRootViewLayId() {\n");
-        method.append("\t\treturn R.layout.");
+        method.append("@Override\nprotected int getRootViewLayId() {\n");
+        method.append("\treturn R.layout.");
         method.append(fileName);
-        method.append("\n}");
+        method.append("\n}\n");
         return method.toString();
     }
 
     public static String createGetItemLayoutId(String fileName) {
         StringBuilder method = new StringBuilder();
-        method.append("@Override public int getItemLayoutId(int viewType) {\n");
-        method.append("\t\treturn R.layout.");
+        method.append("@Override\npublic int getItemLayoutId(int viewType) {\n");
+        method.append("\treturn R.layout.");
         method.append(fileName);
-        method.append("\n}");
+        method.append("\n}\n");
         return method.toString();
     }
 
-    public static String createSetUpData(List<Element> mElements) {
+    public static String createSetUpData(List<Element> mElements, String dataType) {
         StringBuilder builder = new StringBuilder();
         for (Element element : mElements) {
             if (element.isEnable()) {
+                builder.append("\t");
                 builder.append(element.getName());
                 builder.append(" ");
                 builder.append(element.getFieldName());
@@ -334,7 +335,9 @@ public class Util {
             }
         }
         StringBuilder methodBuilder = new StringBuilder();
-        methodBuilder.append("@Override public void setUpData(final CommonHolder holder, int position, int viewType, ClassCourseListReply.DataBean data) {\n");
+        methodBuilder.append("@Override\npublic void setUpData(final CommonHolder holder, int position, int viewType, ");
+        methodBuilder.append(dataType);
+        methodBuilder.append(" data) {\n");
         methodBuilder.append(builder);
         methodBuilder.append("}\n");
         return methodBuilder.toString();
@@ -551,6 +554,7 @@ public class Util {
         initView.append("private void initView() {\n");
         for (Element element : mElements) {
             if (element.isEnable()) {
+                initView.append("\t");
                 initView.append(element.getFieldName());
                 initView.append(" = getView(");
                 initView.append(element.getFullID());
@@ -567,7 +571,7 @@ public class Util {
      * @param mOnClick 可onclick的Element
      * @return String
      */
-    static String createZClickMethod(Element mOnClick) {
+    public static String createZClickMethod(Element mOnClick) {
         StringBuilder onClick = new StringBuilder();
         onClick.append("@ZClick(");
         onClick.append(mOnClick.getFullID());
