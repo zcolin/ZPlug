@@ -8,7 +8,6 @@ import com.intellij.psi.PsiManager;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
 
-import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -76,7 +75,6 @@ public class ChooseDirDialog extends JFrame implements ActionListener {
         createNode(srcFile, node);
 
         final Tree tree = new Tree(node);
-        tree.setBackground(new Color(204, 238, 208));
         tree.expandRow(0);
         tree.expandRow(1);
         tree.expandRow(2);
