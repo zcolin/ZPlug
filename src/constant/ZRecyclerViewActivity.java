@@ -19,9 +19,9 @@ public class ZRecyclerViewActivity {
                     "    private void initView() {\n" +
                     "        recyclerView = getView(R.id.recycler_view);\n" +
                     "        //recyclerView.setEmptyView(mActivity, R.layout.view_pullrecycler_empty);\n" +
-                    "        recyclerView.setOnItemClickListener(new BaseRecyclerAdapter.OnItemClickListener<String>() {\n" +
+                    "        recyclerView.setOnItemClickListener(new BaseRecyclerAdapter.OnItemClickListener<ListItemData>() {\n" +
                     "            @Override\n" +
-                    "            public void onItemClick(View covertView, int position, String data) {\n" +
+                    "            public void onItemClick(View covertView, int position, ListItemData data) {\n" +
                     "                //TODO 添加点击事件 \n" +
                     "            }\n" +
                     "        });\n" +

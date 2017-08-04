@@ -4,7 +4,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.components.JBScrollPane;
 
-import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -163,7 +162,6 @@ public class ContentShowDialog extends JFrame implements ActionListener, ItemLis
      * 解析mElements，并添加到JPanel
      */
     private void initContentPanel() {
-        jTextArea.setBackground(new Color(204, 238, 208));
         mContentJPanel = new JBScrollPane(jTextArea);
         mContentJPanel.revalidate();
         getContentPane().add(mContentJPanel, 1);
