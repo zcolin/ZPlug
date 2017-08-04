@@ -7,7 +7,7 @@ import com.intellij.psi.PsiStatement;
 import java.util.List;
 
 import findviewbyid.entitys.Element;
-import findviewbyid.utils.Util;
+import findviewbyid.utils.FindViewUtil;
 
 /**
  * FindViewByIdFromJavaDialog
@@ -45,9 +45,9 @@ public class FindViewByIdFromJavaDialog extends GenerateDialog {
         boolean isClickExist = false;
         PsiField[] fields = mClass.getFields();
         // 获取initView方法的内容
-        PsiStatement[] statements = Util.getInitViewBodyStatements(mClass);
+        PsiStatement[] statements = FindViewUtil.getInitViewBodyStatements(mClass);
         //获取ZClick注解内容
-        List<String> psiMethodByZClickValue = Util.getPsiMethodByZClickValue(mClass);
+        List<String> psiMethodByZClickValue = FindViewUtil.getPsiMethodByZClickValue(mClass);
         for (Element element : mElements) {
             if (statements != null) {
                 isFdExist = checkFieldExist(statements, element);

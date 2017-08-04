@@ -10,13 +10,16 @@
 
     <actions>
         <group id="ZAction.Zplug" text="_Zplug" popup="true">
-            <!--<add-to-group group-id="MainMenu" anchor="last"/>-->
+            <add-to-group group-id="MainMenu" anchor="last"/>
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
             <action id="ZFindViewAction" class="findviewbyid.actions.FindViewByIdFromJavaAction" text="ZFindView"
                     description="ZFindViewAction">
             </action>
             <action id="ZFindViewFromXMLAction" class="findviewbyid.actions.FindViewByIdFromXmlAction" text="ZFindViewFromXML"
                     description="ZFindViewFromXMLAction">
+            </action>
+            <action id="ZRecyclerViewAction" class="zrecyclerview.ZRecyclerViewAction" text="ZRecyclerView"
+                    description="ZRecyclerViewAction">
             </action>
         </group>
     </actions>

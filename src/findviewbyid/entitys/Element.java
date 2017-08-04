@@ -7,7 +7,7 @@ import org.apache.commons.lang.StringUtils;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import findviewbyid.utils.Util;
+import common.Util;
 
 public class Element {
 

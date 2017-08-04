@@ -1,7 +1,6 @@
-package findviewbyid.views;
+package zrecyclerview;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiFile;
 import com.intellij.ui.components.JBScrollPane;
 
 import java.awt.Color;
@@ -17,9 +16,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -34,66 +30,51 @@ import javax.swing.event.DocumentListener;
 
 import common.ChooseDirDialog;
 import common.Util;
+import constant.ZRecyclerViewActivity;
+import constant.ZRecyclerViewFramgnet;
+import constant.ZRecyclerViewLayout;
 import findviewbyid.constant.Constant;
-import findviewbyid.entitys.Element;
-import findviewbyid.utils.FindViewUtil;
 
 /**
  * FindViewByIdFromJavaDialog
  */
 public class ContentShowDialog extends JFrame implements ActionListener, ItemListener, DocumentListener {
     private JBScrollPane mContentJPanel;// 内容JPanel
-    private JTextArea     jTextArea         = new JTextArea();
-    private JPanel        mTopPannel        = new JPanel();
-    private JTextField    mNameFiled        = new JTextField();
-    private JTextField    mDataTypeFiled    = new JTextField();
-    private Label         label1            = new Label("name");
-    private Label         label2            = new Label("dataType");
-    private JPanel        mPanelButtonRight = new JPanel();
-    private JButton       mButtonConfirm    = new JButton("Copy");
-    private JButton       mButtonCreateFile = new JButton("CreateFile");
-    private JPanel        mPanelInflater    = new JPanel(new FlowLayout(FlowLayout.LEFT)); // 底部JPanel
-    private JRadioButton  mActivityflater   = new JRadioButton("Activity", true);
-    private JRadioButton  mFragemntflater   = new JRadioButton("Fragment", false);
-    private JRadioButton  mAdapterflater    = new JRadioButton("BaseAdapter", false);
-    private ButtonGroup   mFileTypeGroup    = new ButtonGroup();
-    private int           fileType          = 0;//0 Activity 1 Fragment  2 BaseAdapter
-    private List<Element> mOnClickList      = new ArrayList<>();
-    private final List<Element> mElements;
-    private final PsiFile       mPsiFile;// 获取当前文件
-    private final Project       mProject;
+    private JTextArea jTextArea = new JTextArea();
+    private JBScrollPane mContentJPanel1;// 内容JPanel
+    private JTextArea    jTextArea1        = new JTextArea();
+    private JPanel       mTopPannel        = new JPanel();
+    private JTextField   mNameFiled        = new JTextField();
+    private Label        label1            = new Label("name");
+    private JPanel       mPanelButtonRight = new JPanel();
+    private JButton      mButtonConfirm    = new JButton("Copy");
+    private JButton      mButtonCreateFile = new JButton("CreateFile");
+    private JPanel       mPanelInflater    = new JPanel(new FlowLayout(FlowLayout.LEFT)); // 底部JPanel
+    private JRadioButton mActivityflater   = new JRadioButton("Activity", true);
+    private JRadioButton mFragemntflater   = new JRadioButton("Fragment", false);
+    private ButtonGroup  mFileTypeGroup    = new ButtonGroup();
+    private int          fileType          = 0;//0 Activity 1 Fragment  
+    private final Project mProject;
     // GridBagLayout不要求组件的大小相同便可以将组件垂直、水平或沿它们的基线对齐
     private GridBagLayout      mLayout      = new GridBagLayout();
     // GridBagConstraints用来控制添加进的组件的显示位置
     private GridBagConstraints mConstraints = new GridBagConstraints();
     private ChooseDirDialog mSelectDirDialog;
 
-    public ContentShowDialog(List<Element> elements, PsiFile psiFile, Project project) {
-        this.mElements = elements;
-        this.mPsiFile = psiFile;
+    public ContentShowDialog(Project project) {
         this.mProject = project;
-        mOnClickList.addAll(mElements.stream()
-                                     .filter(element -> element.isEnable() && element.isClickable())
-                                     .collect(Collectors.toList()));
         initTopPannel();
         initContentPanel();
         initBottomPanel();
         setConstraints();
         setDialog();
-
     }
 
     private void initTopPannel() {
         mNameFiled.getDocument()
                   .addDocumentListener(this);
-        mDataTypeFiled.getDocument()
-                      .addDocumentListener(this);
         mTopPannel.add(label1);
         mTopPannel.add(mNameFiled);
-        mTopPannel.add(label2);
-        mTopPannel.add(mDataTypeFiled);
-        label2.setVisible(false);
-        mDataTypeFiled.setVisible(false);
         mTopPannel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
         GridBagLayout bagLayout = new GridBagLayout();
@@ -105,25 +86,12 @@ public class ContentShowDialog extends JFrame implements ActionListener, ItemLis
         constraints.weighty = 0;
         bagLayout.setConstraints(label1, constraints);
 
-        constraints.gridx = 0;
-        constraints.gridy = 1;
-        constraints.weightx = 0;
-        constraints.weighty = 0;
-        bagLayout.setConstraints(label2, constraints);
-
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.gridx = 1;
         constraints.gridy = 0;
         constraints.weightx = 1;
         constraints.weighty = 0;
         bagLayout.setConstraints(mNameFiled, constraints);
-
-        constraints.fill = GridBagConstraints.HORIZONTAL;
-        constraints.gridx = 1;
-        constraints.gridy = 1;
-        constraints.weightx = 1;
-        constraints.weighty = 0;
-        bagLayout.setConstraints(mDataTypeFiled, constraints);
 
         mTopPannel.setLayout(bagLayout);
         getContentPane().add(mTopPannel, 0);
@@ -143,20 +111,17 @@ public class ContentShowDialog extends JFrame implements ActionListener, ItemLis
         //添加listener
         mActivityflater.addItemListener(this);
         mFragemntflater.addItemListener(this);
-        mAdapterflater.addItemListener(this);
         //添加到group
         mFileTypeGroup.add(mActivityflater);
         mFileTypeGroup.add(mFragemntflater);
-        mFileTypeGroup.add(mAdapterflater);
         //添加到JPanel
         mPanelInflater.add(mActivityflater);
         mPanelInflater.add(mFragemntflater);
-        mPanelInflater.add(mAdapterflater);
         // 添加到JFrame
-        getContentPane().add(mPanelInflater, 2);
+        getContentPane().add(mPanelInflater, 3);
 
         // 添加到JFrame
-        getContentPane().add(mPanelButtonRight, 3);
+        getContentPane().add(mPanelButtonRight, 4);
     }
 
     /**
@@ -164,77 +129,28 @@ public class ContentShowDialog extends JFrame implements ActionListener, ItemLis
      */
     private void initContentPanel() {
         jTextArea.setBackground(new Color(204, 238, 208));
+        jTextArea1.setBackground(new Color(204, 238, 208));
         mContentJPanel = new JBScrollPane(jTextArea);
         mContentJPanel.revalidate();
+        mContentJPanel1 = new JBScrollPane(jTextArea1);
+        mContentJPanel1.revalidate();
         getContentPane().add(mContentJPanel, 1);
+        getContentPane().add(mContentJPanel1, 2);
         setContent();
     }
 
     private void setContent() {
-        StringBuilder builder = new StringBuilder();
+        String str;
         if (fileType == 0) {
-            builder.append("public class ");
-            builder.append(mNameFiled.getText());
-            builder.append("Activity extends BaseActivity {\n");
-            for (Element element : mElements) {
-                // 设置变量名，获取text里面的内容
-                if (element.isEnable()) {
-                    builder.append(FindViewUtil.createFieldByElement(FindViewUtil.getFieldComments(element, mProject), element));
-                }
-            }
-            builder.append("\n");
-            String name = mPsiFile.getName()
-                                  .substring(0, mPsiFile.getName()
-                                                        .lastIndexOf("."));
-            builder.append(FindViewUtil.createOnCreateMethod(name));
-            builder.append("\n");
-            builder.append(FindViewUtil.createFieldsByInitViewMethod(mElements));
-            builder.append("\n");
-            for (Element element : mOnClickList) {
-                builder.append(FindViewUtil.createZClickMethod(element));
-                builder.append("\n");
-            }
-            builder.append("}");
-        } else if (fileType == 1) {
-            builder.append("public class ");
-            builder.append(mNameFiled.getText());
-            builder.append("Fragment extends BaseFragment {\n");
-            for (Element element : mElements) {
-                // 设置变量名，获取text里面的内容
-                if (element.isEnable()) {
-                    builder.append(FindViewUtil.createFieldByElement(FindViewUtil.getFieldComments(element, mProject), element));
-                }
-            }
-            builder.append("\n");
-            builder.append(FindViewUtil.createGetRootLayoutId(mPsiFile.getName()));
-            builder.append("\n");
-            builder.append(FindViewUtil.createCreateViewMethod());
-            builder.append("\n");
-            builder.append(FindViewUtil.createFieldsByInitViewMethod(mElements));
-            builder.append("\n");
-            for (Element element : mOnClickList) {
-                builder.append(FindViewUtil.createZClickMethod(element));
-                builder.append("\n");
-            }
-            builder.append("}");
-        } else if (fileType == 2) {
-            builder.append("public class ");
-            builder.append(mNameFiled.getText());
-            builder.append("Adapter extends BaseRecyclerAdapter<");
-            builder.append(mDataTypeFiled.getText());
-            builder.append("> {\n");
-            builder.append(FindViewUtil.createGetItemLayoutId(mPsiFile.getName()));
-            builder.append("\n");
-            builder.append(FindViewUtil.createSetUpData(mElements, mDataTypeFiled.getText()));
-            builder.append("}");
+            str = ZRecyclerViewActivity.str;
+        } else {
+            str = ZRecyclerViewFramgnet.str;
         }
-        String str = builder.toString();
-        str = str.replace("\n", "\n\t");
-        builder.setLength(0);
-        builder.append(str);
-        int index = builder.lastIndexOf("\n\t");
-        builder.replace(index, index + 2, "\n");
-        jTextArea.setText(builder.toString());
+        str = str.replace("${name}", mNameFiled.getText());
+        str = str.replace("${layout}", mNameFiled.getText()
+                                                 .toLowerCase());
+        jTextArea.setText(str);
+        jTextArea1.setText(ZRecyclerViewLayout.str);
     }
 
     /**
@@ -254,19 +170,26 @@ public class ContentShowDialog extends JFrame implements ActionListener, ItemLis
         mConstraints.gridx = 0;
         mConstraints.gridy = 1;
         mConstraints.weightx = 1;
-        mConstraints.weighty = 1;
+        mConstraints.weighty = 2;
         mLayout.setConstraints(mContentJPanel, mConstraints);
+        mConstraints.fill = GridBagConstraints.BOTH;
+        mConstraints.gridwidth = 1;
+        mConstraints.gridx = 0;
+        mConstraints.gridy = 2;
+        mConstraints.weightx = 1;
+        mConstraints.weighty = 1;
+        mLayout.setConstraints(mContentJPanel1, mConstraints);
         mConstraints.fill = GridBagConstraints.HORIZONTAL;
         mConstraints.gridwidth = 0;
         mConstraints.gridx = 0;
-        mConstraints.gridy = 2;
+        mConstraints.gridy = 3;
         mConstraints.weightx = 1;
         mConstraints.weighty = 0;
         mLayout.setConstraints(mPanelInflater, mConstraints);
         mConstraints.fill = GridBagConstraints.NONE;
         mConstraints.gridwidth = 0;
         mConstraints.gridx = 0;
-        mConstraints.gridy = 3;
+        mConstraints.gridy = 4;
         mConstraints.weightx = 0;
         mConstraints.weighty = 0;
         mConstraints.anchor = GridBagConstraints.EAST;
@@ -326,27 +249,21 @@ public class ContentShowDialog extends JFrame implements ActionListener, ItemLis
                 mSelectDirDialog.setOnPathSelectedListener((file, psiFile) -> {
                     if (psiFile != null) {
                         cancelDialog();
-                        String fileName = mNameFiled.getText() + (fileType == 0 ? "Activity.java" : fileType == 1 ? "Fragment.java" : "Adapter.java");
+                        String fileName = mNameFiled.getText() + (fileType == 0 ? "Activity.java" : "Fragment.java");
                         Util.createJavaFile(mProject, file.getPath(), psiFile, fileName, jTextArea.getText());
+
+                        Util.createXMLfile(mProject, (fileType == 0 ? "activity_" : "fragment_") + mNameFiled.getText()
+                                                                                                             .toLowerCase() + ".xml", ZRecyclerViewLayout.str);
                     }
                 });
                 mSelectDirDialog.showDialog();
                 break;
-
         }
     }
 
     @Override
     public void itemStateChanged(ItemEvent e) {
-        if (e.getSource() == mAdapterflater) {
-            label2.setVisible(true);
-            mDataTypeFiled.setVisible(true);
-        } else {
-            label2.setVisible(false);
-            mDataTypeFiled.setVisible(false);
-        }
-
-        fileType = e.getSource() == mAdapterflater ? 2 : e.getSource() == mFragemntflater ? 1 : 0;
+        fileType = e.getSource() == mFragemntflater ? 1 : 0;
         setContent();
     }
 

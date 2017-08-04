@@ -25,11 +25,11 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
+import common.Util;
 import findviewbyid.constant.Constant;
 import findviewbyid.entitys.Element;
 import findviewbyid.entitys.IdBean;
 import findviewbyid.utils.GenerateCreator;
-import findviewbyid.utils.Util;
 
 /**
  * GenerateDialog
@@ -194,7 +194,7 @@ public class GenerateDialog extends JFrame implements ActionListener, ItemListen
      * 判断是否存在ButterKnife.bind(this)/ButterKnife.bind(this, view)
      */
     void checkBind() {
-        // mBind.setSelected(Util.isButterKnifeBindExist(mClass));
+        // mBind.setSelected(FindViewUtil.isButterKnifeBindExist(mClass));
     }
 
     /**

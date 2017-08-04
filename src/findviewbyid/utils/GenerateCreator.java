@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import common.Util;
 import findviewbyid.constant.Constant;
 import findviewbyid.entitys.Element;
 import findviewbyid.views.GenerateDialog;
@@ -162,7 +163,7 @@ public class GenerateCreator extends Simple {
 
     private void generateActivityOnCreateCode() {
         if (mClass.findMethodsByName(Constant.psiMethodByOnCreate, false).length == 0) {
-            mClass.add(mFactory.createMethodFromText(Util.createOnCreateMethod(mSelectedText), mClass));
+            mClass.add(mFactory.createMethodFromText(FindViewUtil.createOnCreateMethod(mSelectedText), mClass));
         } else {
             PsiStatement setContentViewStatement = null; // 获取setContentView
             boolean hasInitViewStatement = false;// onCreate是否存在initView方法
@@ -203,7 +204,7 @@ public class GenerateCreator extends Simple {
     private void generateFragmentCreateViewCode() {
         // 判断是否有createView方法
         if (mClass.findMethodsByName(Constant.psiMethodByOnCreateView, false).length == 0) {
-            mClass.add(mFactory.createMethodFromText(Util.createCreateViewMethod(), mClass));
+            mClass.add(mFactory.createMethodFromText(FindViewUtil.createCreateViewMethod(), mClass));
         } else {
             PsiStatement lastStatement = null;
             boolean hasInitViewStatement = false; // createView是否存在initView方法
@@ -268,7 +269,7 @@ public class GenerateCreator extends Simple {
                 }
             }
         } else {
-            mClass.add(mFactory.createMethodFromText(Util.createSetUpData(mElements, "T"), mClass));
+            mClass.add(mFactory.createMethodFromText(FindViewUtil.createSetUpData(mElements, "T"), mClass));
         }
     }
 
@@ -290,7 +291,7 @@ public class GenerateCreator extends Simple {
             // 设置变量名，获取text里面的内容
             if (element.isEnable()) {
                 // 添加到class
-                mClass.add(mFactory.createFieldFromText(Util.createFieldByElement(Util.getFieldComments(element, mProject), element), mClass));
+                mClass.add(mFactory.createFieldFromText(FindViewUtil.createFieldByElement(FindViewUtil.getFieldComments(element, mProject), element), mClass));
             }
         }
     }
@@ -331,7 +332,7 @@ public class GenerateCreator extends Simple {
             }
         } else {
             mClass.add(mFactory.createMethodFromText(
-                    Util.createFieldsByInitViewMethod(mElements), mClass));
+                    FindViewUtil.createFieldsByInitViewMethod(mElements), mClass));
         }
     }
 
@@ -340,10 +341,10 @@ public class GenerateCreator extends Simple {
      * 写onClick方法
      */
     private void generateZClickCode() {
-        PsiMethod psiMethodByZClick = Util.getPsiMethodByZClick(mClass);
+        PsiMethod psiMethodByZClick = FindViewUtil.getPsiMethodByZClick(mClass);
         // 有@ZClick注解
         if (psiMethodByZClick != null && psiMethodByZClick.getBody() != null) {
-            List<String> psiMethodZClickValue = Util.getPsiMethodByZClickValue(mClass);
+            List<String> psiMethodZClickValue = FindViewUtil.getPsiMethodByZClickValue(mClass);
             if (mOnClickList.size() != 0) {
                 List<Element> clickList = new ArrayList<>();
                 for (Element element : mOnClickList) {
@@ -361,13 +362,13 @@ public class GenerateCreator extends Simple {
                 }
 
                 for (Element element : clickList) {
-                    mClass.add(mFactory.createMethodFromText(Util.createZClickMethod(element), mClass));
+                    mClass.add(mFactory.createMethodFromText(FindViewUtil.createZClickMethod(element), mClass));
                 }
             }
         } else {
             if (mOnClickList.size() != 0) {
                 for (Element element : mOnClickList) {
-                    mClass.add(mFactory.createMethodFromText(Util.createZClickMethod(element), mClass));
+                    mClass.add(mFactory.createMethodFromText(FindViewUtil.createZClickMethod(element), mClass));
                 }
             }
         }

@@ -7,6 +7,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiUtilBase;
@@ -17,9 +18,9 @@ import org.apache.commons.lang.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+import common.Util;
 import findviewbyid.constant.Constant;
 import findviewbyid.entitys.Element;
-import findviewbyid.utils.Util;
 import findviewbyid.views.FindViewByIdFromJavaDialog;
 import findviewbyid.views.GenerateDialog;
 
@@ -86,8 +87,7 @@ public class FindViewByIdFromJavaAction extends AnAction {
         if (psiFile == null) {
             return false;
         }
-        return ("JAVA".equalsIgnoreCase(psiFile.getFileType()
-                                               .getName()));
+        return psiFile instanceof PsiJavaFile;
     }
 
     private PsiFile[] getPsiFile(AnActionEvent e) {

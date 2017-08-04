@@ -11,9 +11,9 @@ import com.intellij.psi.xml.XmlFile;
 import java.util.ArrayList;
 import java.util.List;
 
+import common.Util;
 import findviewbyid.constant.Constant;
 import findviewbyid.entitys.Element;
-import findviewbyid.utils.Util;
 import findviewbyid.views.FindViewByIdFromJavaDialog;
 import findviewbyid.views.FindViewByIdFromXMLDialog;
 import findviewbyid.views.GenerateDialog;
