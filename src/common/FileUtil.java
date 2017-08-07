@@ -17,7 +17,6 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -212,10 +211,11 @@ public class FileUtil {
         BufferedReader br = null;
         StringBuilder stringBuilder = new StringBuilder();
         try {
-            br = new BufferedReader(new InputStreamReader(in));
+            br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
             String str = null;
             while ((str = br.readLine()) != null) {
                 stringBuilder.append(str);
+                stringBuilder.append("\n");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -238,10 +238,11 @@ public class FileUtil {
         if (file.exists()) {
             try {
                 //可以换成工程目录下的其他文本文件
-                br = new BufferedReader(new FileReader(file));
+                br = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
                 String str = null;
                 while ((str = br.readLine()) != null) {
                     stringBuilder.append(str);
+                    stringBuilder.append("\n");
                 }
             } catch (IOException e) {
                 e.printStackTrace();

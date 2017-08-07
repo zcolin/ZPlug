@@ -1,4 +1,4 @@
-package findviewbyid.actions;
+package actions;
 
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;

@@ -1,6 +1,9 @@
 package zrecyclerview;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiManager;
 import com.intellij.ui.components.JBScrollPane;
 
 import java.awt.FlowLayout;
@@ -27,11 +30,8 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import common.ChooseDirDialog;
+import common.FileUtil;
 import common.Util;
-import constant.ZRecyclerViewActivity;
-import constant.ZRecyclerViewFramgnet;
-import constant.ZRecyclerViewLayout;
 import findviewbyid.constant.Constant;
 
 /**
@@ -54,14 +54,13 @@ public class ContentShowDialog extends JFrame implements ActionListener, ItemLis
     private ButtonGroup  mFileTypeGroup    = new ButtonGroup();
     private int          fileType          = 0;//0 Activity 1 Fragment  
     private final Project mProject;
-    // GridBagLayout不要求组件的大小相同便可以将组件垂直、水平或沿它们的基线对齐
-    private GridBagLayout      mLayout      = new GridBagLayout();
-    // GridBagConstraints用来控制添加进的组件的显示位置
-    private GridBagConstraints mConstraints = new GridBagConstraints();
-    private ChooseDirDialog mSelectDirDialog;
+    private GridBagLayout      mLayout      = new GridBagLayout(); // GridBagLayout不要求组件的大小相同便可以将组件垂直、水平或沿它们的基线对齐
+    private GridBagConstraints mConstraints = new GridBagConstraints(); // GridBagConstraints用来控制添加进的组件的显示位置
+    private VirtualFile dirFile;
 
-    public ContentShowDialog(Project project) {
+    public ContentShowDialog(Project project, VirtualFile dirFile) {
         this.mProject = project;
+        this.dirFile = dirFile;
         initTopPannel();
         initContentPanel();
         initBottomPanel();
@@ -139,15 +138,15 @@ public class ContentShowDialog extends JFrame implements ActionListener, ItemLis
     private void setContent() {
         String str;
         if (fileType == 0) {
-            str = ZRecyclerViewActivity.str;
+            str = FileUtil.readFileStr(getClass().getResourceAsStream("/ZRecyclerViewActivity.txt"));
         } else {
-            str = ZRecyclerViewFramgnet.str;
+            str = FileUtil.readFileStr(getClass().getResourceAsStream("/ZRecyclerViewFramgnet.txt"));
         }
         str = str.replace("${name}", mNameFiled.getText());
         str = str.replace("${layout}", mNameFiled.getText()
                                                  .toLowerCase());
         jTextArea.setText(str);
-        jTextArea1.setText(ZRecyclerViewLayout.str);
+        jTextArea1.setText(FileUtil.readFileStr(getClass().getResourceAsStream("/ZRecyclerViewLayout.txt")));
     }
 
     /**
@@ -239,21 +238,14 @@ public class ContentShowDialog extends JFrame implements ActionListener, ItemLis
                 cancelDialog();
                 break;
             case "CreateFile":
-                if (mSelectDirDialog != null && mSelectDirDialog.isShowing()) {
-                    mSelectDirDialog.cancelDialog();
-                }
-                mSelectDirDialog = new ChooseDirDialog(mProject);
-                mSelectDirDialog.setOnPathSelectedListener((file, psiFile) -> {
-                    if (psiFile != null) {
-                        cancelDialog();
-                        String fileName = mNameFiled.getText() + (fileType == 0 ? "Activity.java" : "Fragment.java");
-                        Util.createJavaFile(mProject, file.getPath(), psiFile, fileName, jTextArea.getText());
+                cancelDialog();
+                final PsiDirectory psiFile = PsiManager.getInstance(mProject)
+                                                       .findDirectory(dirFile);
+                String fileName = mNameFiled.getText() + (fileType == 0 ? "Activity.java" : "Fragment.java");
+                Util.createJavaFile(mProject, dirFile.getPath(), psiFile, fileName, jTextArea.getText());
 
-                        Util.createXMLfile(mProject, (fileType == 0 ? "activity_" : "fragment_") + mNameFiled.getText()
-                                                                                                             .toLowerCase() + ".xml", ZRecyclerViewLayout.str);
-                    }
-                });
-                mSelectDirDialog.showDialog();
+                Util.createXMLfile(mProject, (fileType == 0 ? "activity_" : "fragment_") + mNameFiled.getText()
+                                                                                                     .toLowerCase() + ".xml", jTextArea1.getText());
                 break;
         }
     }
