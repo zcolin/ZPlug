@@ -4,6 +4,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.components.JBScrollPane;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -308,6 +310,14 @@ public class ContentShowDialog extends JFrame implements ActionListener, ItemLis
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        if (StringUtils.isEmpty(mNameFiled.getText())) {
+            Util.showInfoNotification(mProject, mNameFiled, "请输入名称");
+            return;
+        } else if (fileType == 2 && StringUtils.isEmpty(mDataTypeFiled.getText())) {
+            Util.showInfoNotification(mProject, mDataTypeFiled, "请输入Adapter的数据类型");
+            return;
+        }
+
         switch (e.getActionCommand()) {
             case "Copy":
                 Clipboard clipboard = Toolkit.getDefaultToolkit()
@@ -325,7 +335,7 @@ public class ContentShowDialog extends JFrame implements ActionListener, ItemLis
                     if (psiFile != null) {
                         cancelDialog();
                         String fileName = mNameFiled.getText() + (fileType == 0 ? "Activity.java" : fileType == 1 ? "Fragment.java" : "Adapter.java");
-                        Util.createJavaFile(mProject, file.getPath(), psiFile, fileName, jTextArea.getText());
+                        Util.createJavaFile(mProject, psiFile, fileName, jTextArea.getText());
                     }
                 });
                 mSelectDirDialog.showDialog();

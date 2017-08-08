@@ -1,6 +1,6 @@
 public class ${name}Activity extends BaseActivity {
     private ZRecyclerView    recyclerView;
-    private ZRecyclerAdapter recyclerViewAdapter;
+    private ${name}Adapter recyclerViewAdapter;
     private int      mPage      = 1;
     private String[] requestTag = new String[1];
 
@@ -21,9 +21,9 @@ public class ${name}Activity extends BaseActivity {
     private void initView() {
         recyclerView = getView(R.id.recycler_view);
         //recyclerView.setEmptyView(mActivity, R.layout.view_pullrecycler_empty);
-        recyclerView.setOnItemClickListener(new BaseRecyclerAdapter.OnItemClickListener<ListItemData>() {
+        recyclerView.setOnItemClickListener(new BaseRecyclerAdapter.OnItemClickListener<${type}>() {
             @Override
-            public void onItemClick(View covertView, int position, ListItemData data) {
+            public void onItemClick(View covertView, int position, ${type} data) {
                 //TODO 添加点击事件 
             }
         });
@@ -79,9 +79,9 @@ public class ${name}Activity extends BaseActivity {
         return false;
     }
 
-    public void setDataToRecyclerView(ArrayList<ListItemData> list, boolean isClear) {
+    public void setDataToRecyclerView(ArrayList<${type}> list, boolean isClear) {
         if (recyclerViewAdapter == null) {
-            recyclerViewAdapter = new ZRecyclerAdapter();
+            recyclerViewAdapter = new ${name}Adapter();
             recyclerView.setAdapter(recyclerViewAdapter);
         }
 

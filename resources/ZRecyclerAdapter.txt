@@ -1,0 +1,11 @@
+public class ${name}Adapter extends BaseRecyclerAdapter<${type}> {
+    
+    @Override
+    public int getItemLayoutId(int viewType) {
+        return R.layout.recycleritem_${layout};
+    }
+
+    @Override
+    public void setUpData(CommonHolder holder, int position, int viewType, ${type} data) {
+    }
+}

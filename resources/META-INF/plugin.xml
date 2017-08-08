@@ -3,6 +3,22 @@
     <name>ZPlug</name>
     <version>1.0</version>
     <vendor email="57521534@qq.com" url="https://github.com/zcolin">GitHub</vendor>
+    <depends>com.intellij.modules.lang</depends>
+
+    <description><![CDATA[
+      用于生成Z系列代码的插件
+      1 生成getView(findViewById), 可以在java文件或者xml文件中生成.
+      2 生成ZRecyclerView相关代码
+      ]]></description>
+
+    <change-notes><![CDATA[
+    <html>
+      <b>1.0.0</b> (2017-08-07)
+      <ul>
+        <li>Initial release</li>
+      </ul>
+    </html>
+          ]]></change-notes>
 
     <idea-version since-build="141.0"/>
     <extensions defaultExtensionNs="com.intellij">

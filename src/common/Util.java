@@ -5,10 +5,12 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.WindowManager;
 import com.intellij.psi.JavaDirectoryService;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -28,6 +30,7 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.awt.RelativePoint;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -38,6 +41,8 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.JComponent;
+
 import findviewbyid.constant.Constant;
 import findviewbyid.entitys.Element;
 
@@ -46,6 +51,37 @@ public class Util {
      * 通过strings.xml获取的值
      */
     private static String StringValue;
+
+    /**
+     * Display simple notification - information
+     */
+    public static void showInfoNotification(Project project, JComponent component, String text) {
+        showNotification(project, MessageType.INFO, component, text);
+    }
+
+    /**
+     * Display simple notification - error
+     */
+    public static void showErrorNotification(Project project, JComponent component, String text) {
+        showNotification(project, MessageType.ERROR, component, text);
+    }
+
+    /**
+     * Display simple notification of given type
+     */
+    public static void showNotification(Project project, MessageType type, JComponent component, String text) {
+        if (component == null) {
+            component = WindowManager.getInstance()
+                                     .getStatusBar(project)
+                                     .getComponent();
+        }
+
+        JBPopupFactory.getInstance()
+                      .createHtmlTextBalloonBuilder(text, type, null)
+                      .setFadeoutTime(4500)
+                      .createBalloon()
+                      .show(RelativePoint.getCenterOf(component), Balloon.Position.atRight);
+    }
 
     /**
      * 显示dialog
@@ -321,8 +357,13 @@ public class Util {
         fileEditorManager.openTextEditor(fileDescriptor, true);//Open the Contract
     }
 
-    public static void createJavaFile(Project project, String dirPath, PsiDirectory psiDir, String fileName, String content) {
-        File newFile = new File(dirPath + "/" + fileName);
+    public static void createJavaFile(Project project, PsiDirectory psiDir, String fileName, String content) {
+        createJavaFile(project, psiDir, fileName, content, true);
+    }
+
+    public static void createJavaFile(Project project, PsiDirectory psiDir, String fileName, String content, boolean isOpen) {
+        File newFile = new File(psiDir.getVirtualFile()
+                                      .getPath() + "/" + fileName);
         PsiPackage psiPackage = JavaDirectoryService.getInstance()
                                                     .getPackage(psiDir);
         if (psiPackage != null) {
@@ -337,15 +378,17 @@ public class Util {
 
             LocalFileSystem.getInstance()
                            .refresh(true);
-            VirtualFile newVirtualFile = LocalFileSystem.getInstance()
-                                                        .refreshAndFindFileByIoFile(newFile);
-            if (newVirtualFile != null) {
-                Util.openFile(project, newVirtualFile);
-                final PsiFile newPsiFile = PsiManager.getInstance(project)
-                                                     .findFile(newVirtualFile);
-                if (newPsiFile != null) {
-                    JavaCodeStyleManager styleManager = JavaCodeStyleManager.getInstance(project);
-                    styleManager.optimizeImports(newPsiFile);
+            if (isOpen) {
+                VirtualFile newVirtualFile = LocalFileSystem.getInstance()
+                                                            .refreshAndFindFileByIoFile(newFile);
+                if (newVirtualFile != null) {
+                    Util.openFile(project, newVirtualFile);
+                    final PsiFile newPsiFile = PsiManager.getInstance(project)
+                                                         .findFile(newVirtualFile);
+                    if (newPsiFile != null) {
+                        JavaCodeStyleManager styleManager = JavaCodeStyleManager.getInstance(project);
+                        styleManager.optimizeImports(newPsiFile);
+                    }
                 }
             }
         }
