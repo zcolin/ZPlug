@@ -1,0 +1,7 @@
+public class ${name}Reply extends BaseReply {
+    public List<${type}> listData;
+    
+    public static class ${classtype} {
+        
+    }
+}

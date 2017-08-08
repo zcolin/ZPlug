@@ -54,6 +54,7 @@ public class ContentShowDialog extends JFrame implements ActionListener, ItemLis
     private JBCheckBox   mCheckLayout        = new JBCheckBox("Layout", true);
     private JBCheckBox   mCheckAdapter       = new JBCheckBox("Adapter", true);
     private JBCheckBox   mCheckAdapterLayout = new JBCheckBox("AdapterLayout", true);
+    private JBCheckBox   mCheckDataBean      = new JBCheckBox("DataBean", true);
     private JPanel       mPanelInflater      = new JPanel(new FlowLayout(FlowLayout.LEFT)); // 底部JPanel
     private JRadioButton mActivityflater     = new JRadioButton("Activity", true);
     private JRadioButton mFragemntflater     = new JRadioButton("Fragment", false);
@@ -128,6 +129,7 @@ public class ContentShowDialog extends JFrame implements ActionListener, ItemLis
         mCheckLayout.addActionListener(this);
         mCheckAdapter.addActionListener(this);
         mCheckAdapterLayout.addActionListener(this);
+        mCheckDataBean.addActionListener(this);
 
         // 右边
         mPanelButtonRight.add(mButtonConfirm);
@@ -146,6 +148,7 @@ public class ContentShowDialog extends JFrame implements ActionListener, ItemLis
         mCreateFileGroup.add(mCheckLayout);
         mCreateFileGroup.add(mCheckAdapter);
         mCreateFileGroup.add(mCheckAdapterLayout);
+        mCreateFileGroup.add(mCheckDataBean);
 
         getContentPane().add(mCreateFileGroup, 2);
         getContentPane().add(mPanelInflater, 3);
@@ -172,7 +175,7 @@ public class ContentShowDialog extends JFrame implements ActionListener, ItemLis
         str = str.replace("${name}", mNameFiled.getText());
         str = str.replace("${layout}", mNameFiled.getText()
                                                  .toLowerCase());
-        str = str.replace("${type}", mDataTypeFiled.getText());
+        str = str.replace("${type}", mNameFiled.getText() + "Reply." + mDataTypeFiled.getText());
         jTextArea.setText(str);
     }
 
@@ -303,7 +306,7 @@ public class ContentShowDialog extends JFrame implements ActionListener, ItemLis
                     String adapterFileName = strName + "Adapter.java";
                     String str = FileUtil.readFileStr(getClass().getResourceAsStream("/ZRecyclerAdapter.txt"));
                     str = str.replace("${name}", strName);
-                    str = str.replace("${type}", mDataTypeFiled.getText());
+                    str = str.replace("${type}", mNameFiled.getText() + "Reply." + mDataTypeFiled.getText());
                     str = str.replace("${layout}", strLayout);
                     Util.createJavaFile(mProject, psiAcapterFile, adapterFileName, str, false);
                 }
@@ -311,6 +314,20 @@ public class ContentShowDialog extends JFrame implements ActionListener, ItemLis
                 if (mCheckAdapterLayout.isSelected()) {
                     String str = FileUtil.readFileStr(getClass().getResourceAsStream("/ZRecyclerAdapterLayout.txt"));
                     Util.createXMLfile(mProject, "recycleritem_" + strLayout + ".xml", str);
+                }
+
+                if (mCheckDataBean.isSelected()) {
+                    PsiDirectory psiAcapterFile = psiFile.findSubdirectory("entity");
+                    if (psiAcapterFile == null) {
+                        psiAcapterFile = psiFile.createSubdirectory("entity");
+                    }
+                    String replyFileName = strName + "Reply.java";
+                    String str = FileUtil.readFileStr(getClass().getResourceAsStream("/ZRecyclerReplyData.txt"));
+                    str = str.replace("${name}", strName);
+                    str = str.replace("${type}", mNameFiled.getText() + "Reply." + mDataTypeFiled.getText());
+                    str = str.replace("${classtype}", mDataTypeFiled.getText());
+
+                    Util.createJavaFile(mProject, psiAcapterFile, replyFileName, str, false);
                 }
 
                 break;

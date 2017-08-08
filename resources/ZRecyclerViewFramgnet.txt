@@ -6,13 +6,13 @@ public class ${name}Fragment extends BaseFrameFrag {
 
     public static ${name}Fragment newInstance() {
         Bundle args = new Bundle();
-        Z1RecyclerFragment fragment = new Z1RecyclerFragment();
+        ${name}Fragment fragment = new ${name}Fragment();
         fragment.setArguments(args);
         return fragment;
     }
     
    @Override
-    protected void onDestroy() {
+    public void onDestroy() {
         super.onDestroy();
         ZHttp.cancelRequest(requestTag);
     }
@@ -51,10 +51,10 @@ public class ${name}Fragment extends BaseFrameFrag {
     private void requestData() {
         HashMap<String, String> mapApply = new HashMap<>();
         mapApply.put("page", String.valueOf(mPage));
-        requestTag[0] = ZHttp.post("", mapApply, new ZResponse<ZReply>(ZReply.class) {
+        requestTag[0] = ZHttp.post("", mapApply, new ZResponse<${name}Reply>(${name}Reply.class) {
             @Override
-            public void onSuccess(Response response, ZReply resObj) {
-                setDataToRecyclerView(resObj.data, mPage == 1);
+            public void onSuccess(Response response, ${name}Reply resObj) {
+                setDataToRecyclerView(resObj.listData, mPage == 1);
                 if (isNoMore(resObj)) {
                     recyclerView.setNoMore(true, 10, recyclerViewAdapter.getDatas());
                 } else {
@@ -79,12 +79,12 @@ public class ${name}Fragment extends BaseFrameFrag {
     /**
      * 分页是否有下一页
      */
-    private boolean isNoMore(ZReply resobj) {
+    private boolean isNoMore(${name}Reply resobj) {
         //TODO 判断是否有下一页
         return false;
     }
 
-    private void setDataToRecyclerView(ArrayList<${type}> list, boolean isClear) {
+    private void setDataToRecyclerView(List<${type}> list, boolean isClear) {
         if (recyclerViewAdapter == null) {
             recyclerViewAdapter = new ${name}Adapter();
             recyclerView.setAdapter(recyclerViewAdapter);

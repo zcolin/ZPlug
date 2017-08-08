@@ -13,7 +13,6 @@ import zrecyclerview.ContentShowDialog;
 
 public class ZRecyclerViewAction extends AnAction {
     private ContentShowDialog mDialog;
-    private String            packageName;
 
     @Override
     public void update(AnActionEvent e) {
@@ -22,10 +21,8 @@ public class ZRecyclerViewAction extends AnAction {
             return;
         }
 
-        if (packageName == null) {
-            packageName = Util.getPackageName(e.getProject());
-            packageName = packageName.replace(".", "/");
-        }
+        String packageName = Util.getPackageName(e.getProject());
+        packageName = packageName.replace(".", "/");
 
         boolean flag = false;
         final PsiElement psiElement = e.getData(PlatformDataKeys.PSI_ELEMENT);
